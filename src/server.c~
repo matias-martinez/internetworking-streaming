@@ -15,10 +15,10 @@ int main(){
 
 	//listen ( sd , 5 );
 	lon= sizeof(fuente);
-	printf("Aguardando connect\n");
+	printf("Aguardando connect");
 	sdf = accept(sd, (struct sockaddr *) &fuente, &lon);
 	
-	printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
+	printf("Recibí connect desde: %s ", inet_ntoa(fuente.sin_addr));
 	
 
 	close(sd);
