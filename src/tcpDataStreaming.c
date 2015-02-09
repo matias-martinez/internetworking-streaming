@@ -123,7 +123,7 @@ int pack(int op, char *buf, msj_t *package){
 	
 	package->dlen = sizeof (buf);
 	if (package->dlen < 128) {
-		strcpy( package->data, buf);
+		strcpy( package->data,buf);
 	}else return 0;
 
 	switch (op){
