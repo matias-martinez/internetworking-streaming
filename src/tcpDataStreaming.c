@@ -8,6 +8,8 @@
 #include <sys/signal.h>
 #include <unistd.h>
 #include <errno.h>
+#include "tcpDataStreaming.h"
+#include "structures.h"
 
 //Mensajes
 #define GET 0
@@ -21,6 +23,10 @@
 #define LONG_POST 6
 #define LONG_SUS 1
 #define LONG_RESP 3
+
+//Encodings Soportados
+#define BINARY 0
+#define TEXT 1
 
 
 //Funcion que devuelve un socket descriptor abierto en modo pasivo.
@@ -71,7 +77,7 @@ int connectTCP(){
 	
 //-----------------------------------------------------------
 
-int leerMensaje ( int sd, char * buffer, int total ) {
+int receiveall ( int sd, char * buffer, int total ) {
 	
 	int bytes=1;
 	int leido=0;
@@ -88,4 +94,56 @@ int leerMensaje ( int sd, char * buffer, int total ) {
 }
 //-----------------------------------------------------------
 
+int sendall (int sd, char *buf, int *len)
+{
+    int total = 0;        
+    int bytesleft = *len; 
+    int n;
 
+    while(total < *len) {
+        n = send(sd, buf+total, bytesleft, 0);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+
+    *len = total; // en *len guardo los bytes enviados
+
+    return n==-1?-1:0; // return -1 en caso de falla
+} 
+
+//--------------------------------------------------------------
+
+int unpack(int *op){
+//devuelve en un parametro el codigo de tipo de operacion y hace la conversion ntohs
+} 
+//--------------------------------------------------------------
+int pack(int op, char *buf, msj_t *package){
+//se le pasa como parametro el tipo de operacion, y un buffer con los campos de datos y devuelve el paquete para hacer send
+	
+	package->dlen = sizeof (buf);
+	if (package->dlen < 128) {
+		strcpy( package->data, buf);
+	}else return 0;
+
+
+	switch (op){
+
+		case GET:
+			//code
+			break;
+		case POST:
+			//code
+			break;
+		case SUS:
+			// -->
+			package->opcode = SUS;
+
+			return 1;
+
+			break;
+		case RESP:
+			//code
+			break;
+	}
+}
