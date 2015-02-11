@@ -30,9 +30,9 @@ int List_push(List, ListNode);
 ListNode ListNode_create();
 
 /**
- * Convierte los elementos de una lista a cvs.
+ * Convierte los elementos de una lista a csv.
  */
-char * List_to_cvs(List);
+char * List_to_csv(List);
 
 /**
  * Borra un elemento de la lista por id.

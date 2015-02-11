@@ -73,7 +73,7 @@ int List_push(List list, ListNode node) {
     return id;
 }
 
-char * List_to_cvs(List list) {
+char * List_to_csv(List list) {
     int i;
     char *tmp = malloc((list->count)*sizeof(ListNode));
     strcat(tmp, "id,type;\n");
@@ -100,6 +100,7 @@ void List_delete_by_id(List list, int id) {
 }
 
 int main() {
+    // Ejemplo de uso
     List l = List_create();
     ListNode ln; 
     int i;
@@ -110,14 +111,16 @@ int main() {
         List_push(l, ln);
     }
     
-    printf("%s", List_to_cvs(l));
+    printf("%s\n", List_to_csv(l));
+    
     List_delete_by_id(l, 2);
-    printf("%s", List_to_cvs(l));
+    printf("%s\n", List_to_csv(l));
 
     ln = ListNode_create();
     ln->type = "asas";
     List_push(l, ln);
 
-    printf("%s", List_to_cvs(l));
+    printf("%s\n", List_to_csv(l));
+
     return 0;
 }   
