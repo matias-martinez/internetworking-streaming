@@ -119,31 +119,26 @@ int unpack(int *op){
 } 
 //--------------------------------------------------------------
 int pack(int op, char *buf, msj_t *package){
-//se le pasa como parametro el tipo de operacion, y un buffer con los campos de datos y devuelve el paquete para hacer send
+//se le pasa como parametro el tipo de operacion, y un buffer con los campos de datos y devuelve el paquete para hacer send. SI retorna 0 hubo un error
 	
 	package->dlen = sizeof (buf);
 	if (package->dlen < 128) {
-		strcpy( package->data, buf);
+		strcpy( package->data,buf);
 	}else return 0;
 
-
 	switch (op){
-
 		case GET:
-			//code
+			package->opcode = GET;
 			break;
 		case POST:
-			//code
+			package->opcode = POST;
 			break;
 		case SUS:
-			// -->
 			package->opcode = SUS;
-
-			return 1;
-
 			break;
 		case RESP:
-			//code
+			package->opcode = RESP;
 			break;
 	}
+	return 1;
 }
