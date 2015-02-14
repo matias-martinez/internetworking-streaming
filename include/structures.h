@@ -13,6 +13,7 @@ typedef struct _msj_
 	char data [128];//Long Max = 128B
 }msj_t;
 
+
 //int llenarMsj(int opcode, 
 /*
 typedef struct _get_

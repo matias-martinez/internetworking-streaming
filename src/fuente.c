@@ -12,16 +12,17 @@ int main(){
 
 
 	int sdf=connectTCP();
-	msj_t paqueteEnvio;
+	msj_t *paqueteEnvio;
 	msj_t *paqueteRecepcion;
 	int len, recibido;	
 	char data2[250];
 	memset(&data2,0, sizeof(data2));
 	//generar data dinamicamente!	
 	char data1[40]="text/plain;;medicion temperatura";	
-	pack(2, &data1, &paqueteEnvio);//check errors!
-	len = sizeof(paqueteEnvio);	
-	sendall(sdf, (char *)&paqueteEnvio, len);
+	pack(2, &data1, paqueteEnvio);//check errors!
+	len = sizeof(data1)+3;	
+	printf("%d\n",sizeof(data1) );
+	sendall(sdf, (char *)paqueteEnvio, len);
 	//esperar rta
 	recibido = receiveall(sdf, data2, 3); //receive. se espera un msj RESP de exito
 
