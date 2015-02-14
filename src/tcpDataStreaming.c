@@ -78,14 +78,14 @@ int connectTCP(){
 //-----------------------------------------------------------
 
 int receiveall ( int sd, char * buffer, int total ) {
-	
+//devuelve cantidad de bytes recibidos
 	int bytes=1;
 	int leido=0;
 	
 	while ( (leido < total) && (bytes > 0) ) {
 		bytes = recv ( sd , buffer + leido , total - leido , 0);
 		if (bytes <0){
-			perror("Error en recepcion del mensaje/ leer_mensaje");
+			perror("Error en recepcion del mensaje/ receiveall()");
 			break;
 		}
 		leido = leido + bytes;
@@ -94,22 +94,24 @@ int receiveall ( int sd, char * buffer, int total ) {
 }
 //-----------------------------------------------------------
 
-int sendall (int sd, char *buf, int *len)
-{
+int sendall (int sd, char *buf, int len){
+//devuelve cantidad de bytes enviados
+
     int total = 0;        
-    int bytesleft = *len; 
+    int bytesleft = len; 
     int n;
 
-    while(total < *len) {
+    while(total < len) {
         n = send(sd, buf+total, bytesleft, 0);
         if (n == -1) { break; }
         total += n;
         bytesleft -= n;
     }
 
-    *len = total; // en *len guardo los bytes enviados
+    total; // en *len guardo los bytes enviados
 
-    return n==-1?-1:0; // return -1 en caso de falla
+    //return n==-1?-1:0; // return -1 en caso de falla (si pasar len como puntero y no como int)
+    return (total);
 } 
 
 //--------------------------------------------------------------

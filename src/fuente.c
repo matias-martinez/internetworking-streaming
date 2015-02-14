@@ -21,7 +21,7 @@ int main(){
 	char data1[40]="text/plain;;medicion temperatura";	
 	pack(2, &data1, &paqueteEnvio);//check errors!
 	len = sizeof(paqueteEnvio);	
-	sendall(sdf, (char *)&paqueteEnvio, &len);
+	sendall(sdf, (char *)&paqueteEnvio, len);
 	//esperar rta
 	recibido = receiveall(sdf, data2, 3); //receive. se espera un msj RESP de exito
 

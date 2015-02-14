@@ -20,7 +20,7 @@ struct fuente{
 
 int main(){
 	
-	int sd=passiveTCPSocket(); //from tdpDataStreaming
+	int sd=passiveTCPSocket(); //from tcpDataStreaming
 	int sdf, lon, recibido;
 	struct sockaddr_in fuente;
 	msj_t mensajeEnvio;
@@ -47,7 +47,7 @@ int main(){
 		//Respuesta de Exito
 		pack(3,&resp, &mensajeEnvio);//Envio un RESP
 		lon = sizeof(mensajeEnvio);
-		sendall(sdf, (char *) &mensajeEnvio, &lon );
+		sendall(sdf, (char *) &mensajeEnvio, lon );
 
 
 		close(sdf);
