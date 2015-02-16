@@ -83,7 +83,7 @@ int receiveall ( int sd, char * buffer, int total ) {
 	int leido=0;
 	
 	while ( (leido < total) && (bytes > 0) ) {
-		bytes = recv ( sd , buffer + leido , total - leido , 0);
+		bytes = recv ( sd , buffer + leido , total - leido , MSG_WAITALL);
 		if (bytes <0){
 			perror("Error en recepcion del mensaje/ receiveall()");
 			break;
@@ -123,7 +123,7 @@ int unpack(int *op){
 int pack(int op, char *buf, msj_t *package){
 //se le pasa como parametro el tipo de operacion, y un buffer con los campos de datos y devuelve el paquete para hacer send. SI retorna 0 hubo un error
 	
-	package->dlen = sizeof (buf);
+	package->dlen = (uint16_t)strlen(buf);
 	if (package->dlen < 128) {
 		strcpy( package->data,buf);
 	}else return 0;
