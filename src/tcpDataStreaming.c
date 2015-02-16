@@ -30,7 +30,7 @@
 
 
 //Funcion que devuelve un socket descriptor abierto en modo pasivo.
-int passiveTCPSocket(){
+int passiveTCPSocket(int port){
 
 	int sd;
 	struct sockaddr_in servidor;
@@ -38,7 +38,7 @@ int passiveTCPSocket(){
 	
 	memset(&servidor, 0, sizeof(servidor));
 	servidor.sin_family = AF_INET;
-	servidor.sin_port = htons(4567);//parametrizar
+	servidor.sin_port = htons(port);
 	servidor.sin_addr.s_addr = INADDR_ANY;
 
 	sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
