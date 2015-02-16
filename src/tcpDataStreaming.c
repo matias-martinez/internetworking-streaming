@@ -115,10 +115,11 @@ int sendall (int sd, char *buf, int len){
 } 
 
 //--------------------------------------------------------------
-
+/*
 int unpack(int *op){
 //devuelve en un parametro el codigo de tipo de operacion y hace la conversion ntohs
 } 
+*/
 //--------------------------------------------------------------
 int pack(int op, char *buf, msj_t *package){
 //se le pasa como parametro el tipo de operacion, y un buffer con los campos de datos y devuelve el paquete para hacer send. SI retorna 0 hubo un error

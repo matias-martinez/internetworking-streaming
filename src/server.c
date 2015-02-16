@@ -22,11 +22,14 @@ int main(){
 	
 	int sd=passiveTCPSocket(4567); //from tcpDataStreaming ->recibir puerto como parametro en ejecucion.
 	int sdf, lon, recibido, op, dlen,recibidos;
+	uint8_t op2;
+	uint16_t dlen2;
 	struct sockaddr_in fuente;
 	msj_t *mensajeEnvio;
 	msj_t *mensajeRecepcion;
 	msj_t *header;
 	char *paquete;
+	char *aux;
 	char resp[3] = "001" ;//dlen =0, tipo=0, codigo=11, VARIABLE: idfuente=001->en este caso al ser solo un dato no lo separo
 	//mensajeEnvio=malloc(sizeof(msj_t));
 	//mensajeRecepcion=malloc(sizeof(msj_t));
@@ -41,15 +44,43 @@ int main(){
 
 		
 		//Hacer receive del HEADER, para luego leer payload
-		//VERSION2
+		//VERSION2		
 		paquete = malloc(3);
 		recibidos = receiveall(sdf,paquete,3);
 		header = (msj_t *) paquete;
+		//free(paquete);
 
+		//Recepcion Payload
 		printf("Recepcion Header. OP = %d. DLEN= %d. bytesHeader = %d\n",header->opcode,header->dlen,recibidos);
-		//recibido = receiveall(sdf, paquete, 32);
-		//printf("Recibi %d\n", recibido);
-		
+		//paquete = malloc(header->dlen);
+		dlen2=header->dlen;
+		op2=header->opcode;
+		free(paquete);
+		paquete=malloc(dlen2);
+		recibido = receiveall(sdf, paquete, dlen2);
+		printf("Recibi datos %d  %d\n", recibido,dlen2);
+		mensajeRecepcion=malloc(sizeof(msj_t));
+		mensajeRecepcion->opcode = op2;
+		mensajeRecepcion->dlen = dlen2;
+		strcpy(mensajeRecepcion->data,paquete);
+
+		switch(mensajeRecepcion->opcode){
+
+			case 2:
+				printf("----\n");
+				strncpy(&aux,mensajeRecepcion->data,1);
+				op2=(uint8_t)aux;
+				printf("Operacion Mensaje SUS = %d\n",op );
+				if (op2=0){
+					//Guardar fuente en lista
+					//Contestar RESP
+				}
+				
+				break;
+
+
+
+		}
 
 /*
 		//VERSION 1

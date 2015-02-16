@@ -19,11 +19,11 @@ int main(){
 	memset(&data2,0, sizeof(data2));
 	
 	//generar data dinamicamente!	
-	char data1[40]="text/plain;;medicion temperatura\0";
+	char data1[40]="0;text/plain;medicion temperatura\0";// |op;codificacion;descripcion| Mensaje SUS. OP = 1.
 	//char *payload;
 	//strncpy ( payload , data1 , strlen(data1)-1 );->violacion segmento
 
-	pack(2, data1, paqueteEnvio);//check errors!
+	pack(2, data1, paqueteEnvio);//check errors! . 2=SUS.
 	len = strlen(data1)+3; //size of payload + header
 
 	enviados=sendall(sdf, (char *)paqueteEnvio, len);
