@@ -24,23 +24,26 @@ List List_create() {
 
     l->count = 0;
     l->max = INCREMENT;
-    l->elements = calloc(INCREMENT, sizeof(ListNode));
+    l->elements = calloc(INCREMENT, sizeof(struct ListNode));
 
     return l;
 }
 
-ListNode ListNode_create() {
+ListNode ListNode_create(char *type, char *description, char *ip) {
     ListNode ln = malloc(sizeof(struct ListNode));
     if (ln == NULL) { return NULL; }
-    ln->id = calloc(10, sizeof(char));
-    ln->type = NULL;
+    ln->id = NULL;
+    ln->type = type;
+    ln->description = description;
+    ln->ip = ip;
 
     return ln;
 }
 
 static void increment_array_size(List list) {
     list->max = INCREMENT * 2;
-    list->elements = realloc(list->elements, list->max * sizeof(ListNode));
+    list->elements = realloc(list->elements, list->max * sizeof(struct ListNode));
+    // TODO: check allocation
 }
 
 static int get_null(List list) {
@@ -68,8 +71,6 @@ int List_push(List list, ListNode node) {
         id = blank_space;
     }
     
-
-    sprintf(node->id, "%d", id);
     list->elements[id] = node;
     
     return id;
@@ -77,26 +78,27 @@ int List_push(List list, ListNode node) {
 
 char * List_to_csv(List list) {
     int i;
-    char *csv = malloc((list->count)*sizeof(ListNode));
-    strcat(csv, "id,type,description,ip;\n");
+    char *csv = malloc(150);
+    strcat(csv, "id,type,description,ip;");
     
     for (i = 0; i < list->count; i++) {
         if (list->elements[i] != NULL) {
-            char *id = list->elements[i]->id;
-            char *type = list->elements[i]->type;
+            char id[5];
+            sprintf(id, "%d", list->elements[i]->id);
+            char *type = (char *) list->elements[i]->type;
             char *ip = list->elements[i]->ip;
             char *description = list->elements[i]->description;
-
-            if (sizeof(csv) <= sizeof(id) + sizeof(type) + sizeof(ip) +\
-                    sizeof(description) + sizeof(",;\n")) {
-                void *new_csv = realloc(csv, 10 * INCREMENT * sizeof(csv));
-                if (new_csv == NULL) {
-                    printf("Error");
-                    exit(1);
-                } else {
-                    csv = new_csv;
-                }
-            } 
+            
+            int len_of_current_node = strlen(id) + strlen(type) + strlen(ip) + strlen(description) + 4; // 4 = separadores
+            int len_of_csv = strlen(csv);
+                    
+            void *new_csv = realloc(csv, len_of_current_node + len_of_csv + 1);
+            if (new_csv == NULL) {
+                printf("Error");
+                exit(1);
+            } else {
+                csv = new_csv;
+            }
             strcat(csv, id);
             strcat(csv, ",");
             strcat(csv, type);
@@ -104,7 +106,7 @@ char * List_to_csv(List list) {
             strcat(csv, description);
             strcat(csv, ",");
             strcat(csv, ip);
-            strcat(csv, ";\n");
+            strcat(csv, ";");
         }
     }
 
@@ -114,3 +116,4 @@ char * List_to_csv(List list) {
 void List_delete_by_id(List list, int id) {
     list->elements[id] = NULL;
 }
+

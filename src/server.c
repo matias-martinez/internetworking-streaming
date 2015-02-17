@@ -4,22 +4,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "list.h"
 #include "tcpDataStreaming.h"
 #include "structures.h"
-
-
-struct ListNode {
-	int id;
-	char *ip;	
-} fuente;
-
+#include "list.h"
 
 
 int main(){
-	
+
+    List fuentes = List_create(); 
 	int sd = passiveTCPSocket(4567); //from tcpDataStreaming ->recibir puerto como parametro en ejecucion.
-	int sdf, lon, recibido, op, dlen,recibidos;
+	int sdf, lon, recibido, op, dlen, recibidos;
 	uint8_t op2;
 	uint16_t dlen2;
 	struct sockaddr_in fuente;
@@ -44,33 +38,41 @@ int main(){
 		//Hacer receive del HEADER, para luego leer payload
 		//VERSION2		
 		paquete = malloc(3);
-		recibidos = receiveall(sdf,paquete,3);
+		recibidos = receiveall(sdf, paquete, 3);
 		header = (msj_t *) paquete;
 		//free(paquete);
 
 		//Recepcion Payload
-		printf("Recepcion Header. OP = %d. DLEN= %d. bytesHeader = %d\n",header->opcode,header->dlen,recibidos);
+		printf("Recepcion Header. OP = %d. DLEN= %d. bytesHeader = %d\n", header->opcode, header->dlen, recibidos);
 		//paquete = malloc(header->dlen);
-		dlen2=header->dlen;
-		op2=header->opcode;
+		dlen2 = header->dlen;
+		op2 = header->opcode;
 		free(paquete);
-		paquete=malloc(dlen2);
+		paquete = malloc(dlen2);
 		recibido = receiveall(sdf, paquete, dlen2);
-		printf("Recibi datos %d  %d\n", recibido,dlen2);
-		mensajeRecepcion=malloc(sizeof(msj_t));
+		printf("Recibi datos %d  %d\n", recibido, dlen2);
+		mensajeRecepcion = malloc(sizeof(msj_t));
 		mensajeRecepcion->opcode = op2;
 		mensajeRecepcion->dlen = dlen2;
-		strcpy(mensajeRecepcion->data,paquete);
+		strcpy(mensajeRecepcion->data, paquete);
 
 		switch(mensajeRecepcion->opcode){
 
 			case 2:
 				printf("----\n");
-				strncpy(&aux,mensajeRecepcion->data,1);
-				op2=(uint8_t)aux;
+				strncpy(&aux, mensajeRecepcion->data, 1);
+				op2 = (uint8_t) aux;
 				printf("Operacion Mensaje SUS = %d\n",op );
-				if (op2=0){
-					//Guardar fuente en lista
+				if (op2 == 0){
+                    // TODO: Checkear que la fuente no este en la lista
+                    // TODO: resolver Hardcodeado
+                    ListNode fuente_node = ListNode_create("plain/text", "temp", inet_ntoa(fuente.sin_addr));
+                    if (fuente_node == NULL) {
+                        printf("fallo la alocacion");
+                    }
+                    int id = List_push(fuentes, fuente_node);
+                    printf("Se asigna a la fuente de ip: %s, el id %d\n", inet_ntoa(fuente.sin_addr), id);
+					// Guardar fuente en lista
 					//Contestar RESP
 				}
 				
@@ -95,7 +97,8 @@ int main(){
 		sendall(sdf, (char *) &mensajeEnvio, lon );
 
 */
-		close(sdf);
+
+        close(sdf);
 	}
 	close(sd);
 	return 0;

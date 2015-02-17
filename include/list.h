@@ -1,5 +1,5 @@
-#ifndef List_h
-#define List_h
+#ifndef LIST_H_
+#define LIST_H_
 
 typedef struct ListNode *ListNode;
 

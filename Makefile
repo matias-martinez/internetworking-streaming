@@ -1,7 +1,8 @@
-EXECUTABLES = fuente server list
+EXECUTABLES = fuente server
 SRCDIR = src
 BINDIR = bin
 INC = -I include
+CXXFLAGS = -g
 
 all: build $(EXECUTABLES)
 
@@ -9,13 +10,11 @@ build:
 	@mkdir -p bin
 
 fuente: build
-	cc $(INC) $(SRCDIR)/fuente.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente
+	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente
 
 server: build
-	cc $(INC) $(SRCDIR)/server.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/server
+	cc $(INC) $(CXXFLAGS) $(SRCDIR)/server.c $(SRCDIR)/tcpDataStreaming.c $(SRCDIR)/list.c -o $(BINDIR)/server
 
-list: build
-	cc $(INC) $(SRCDIR)/list.c -o $(BINDIR)/list
 
 
 clean:
