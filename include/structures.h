@@ -30,5 +30,3 @@ typedef struct _sus_
 
 typedef struct _resp_
 */
-
-

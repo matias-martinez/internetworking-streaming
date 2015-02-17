@@ -1,4 +1,4 @@
-EXECUTABLES = fuente server lista
+EXECUTABLES = fuente server list
 SRCDIR = src
 BINDIR = bin
 INC = -I include
