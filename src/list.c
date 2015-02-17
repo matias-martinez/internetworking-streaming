@@ -8,6 +8,8 @@
 struct ListNode {
     char *id;
     char *type;
+    char *description;
+    char *ip;
 };
 
 struct List {
@@ -75,52 +77,40 @@ int List_push(List list, ListNode node) {
 
 char * List_to_csv(List list) {
     int i;
-    char *tmp = malloc((list->count)*sizeof(ListNode));
-    strcat(tmp, "id,type;\n");
+    char *csv = malloc((list->count)*sizeof(ListNode));
+    strcat(csv, "id,type,description,ip;\n");
     
     for (i = 0; i < list->count; i++) {
         if (list->elements[i] != NULL) {
             char *id = list->elements[i]->id;
             char *type = list->elements[i]->type;
-            if (sizeof(tmp) <= sizeof(id) + sizeof(type)+ sizeof(",;\n")) {
-                tmp = realloc(tmp, 100 * sizeof(tmp));
+            char *ip = list->elements[i]->ip;
+            char *description = list->elements[i]->description;
+
+            if (sizeof(csv) <= sizeof(id) + sizeof(type) + sizeof(ip) +\
+                    sizeof(description) + sizeof(",;\n")) {
+                void *new_csv = realloc(csv, 10 * INCREMENT * sizeof(csv));
+                if (new_csv == NULL) {
+                    printf("Error");
+                    exit(1);
+                } else {
+                    csv = new_csv;
+                }
             } 
-            strcat(tmp, id);
-            strcat(tmp, ",");
-            strcat(tmp, type);
-            strcat(tmp, ";\n");
+            strcat(csv, id);
+            strcat(csv, ",");
+            strcat(csv, type);
+            strcat(csv, ",");
+            strcat(csv, description);
+            strcat(csv, ",");
+            strcat(csv, ip);
+            strcat(csv, ";\n");
         }
     }
 
-    return tmp;
+    return csv;
 }
 
 void List_delete_by_id(List list, int id) {
     list->elements[id] = NULL;
 }
-
-int main() {
-    // Ejemplo de uso
-    List l = List_create();
-    ListNode ln; 
-    int i;
-
-    for (i = 0; i < 15; i++) {
-        ln = ListNode_create();
-        ln->type = "asasddddasasdqweqsdasddd";
-        List_push(l, ln);
-    }
-    
-    printf("%s\n", List_to_csv(l));
-    
-    List_delete_by_id(l, 2);
-    printf("%s\n", List_to_csv(l));
-
-    ln = ListNode_create();
-    ln->type = "asas";
-    List_push(l, ln);
-
-    printf("%s\n", List_to_csv(l));
-
-    return 0;
-}   
