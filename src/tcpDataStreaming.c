@@ -30,7 +30,7 @@
 
 
 //Funcion que devuelve un socket descriptor abierto en modo pasivo.
-int passiveTCPSocket(){
+int passiveTCPSocket(int port){
 
 	int sd;
 	struct sockaddr_in servidor;
@@ -38,7 +38,7 @@ int passiveTCPSocket(){
 	
 	memset(&servidor, 0, sizeof(servidor));
 	servidor.sin_family = AF_INET;
-	servidor.sin_port = htons(4567);//parametrizar
+	servidor.sin_port = htons(port);
 	servidor.sin_addr.s_addr = INADDR_ANY;
 
 	sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -78,14 +78,14 @@ int connectTCP(){
 //-----------------------------------------------------------
 
 int receiveall ( int sd, char * buffer, int total ) {
-	
+//devuelve cantidad de bytes recibidos
 	int bytes=1;
 	int leido=0;
 	
 	while ( (leido < total) && (bytes > 0) ) {
-		bytes = recv ( sd , buffer + leido , total - leido , 0);
+		bytes = recv ( sd , buffer + leido , total - leido , MSG_WAITALL);
 		if (bytes <0){
-			perror("Error en recepcion del mensaje/ leer_mensaje");
+			perror("Error en recepcion del mensaje/ receiveall()");
 			break;
 		}
 		leido = leido + bytes;
@@ -94,34 +94,37 @@ int receiveall ( int sd, char * buffer, int total ) {
 }
 //-----------------------------------------------------------
 
-int sendall (int sd, char *buf, int *len)
-{
+int sendall (int sd, char *buf, int len){
+//devuelve cantidad de bytes enviados
+
     int total = 0;        
-    int bytesleft = *len; 
+    int bytesleft = len; 
     int n;
 
-    while(total < *len) {
+    while(total < len) {
         n = send(sd, buf+total, bytesleft, 0);
         if (n == -1) { break; }
         total += n;
         bytesleft -= n;
     }
 
-    *len = total; // en *len guardo los bytes enviados
+    total; // en *len guardo los bytes enviados
 
-    return n==-1?-1:0; // return -1 en caso de falla
+    //return n==-1?-1:0; // return -1 en caso de falla (si pasar len como puntero y no como int)
+    return (total);
 } 
 
 //--------------------------------------------------------------
-
+/*
 int unpack(int *op){
 //devuelve en un parametro el codigo de tipo de operacion y hace la conversion ntohs
 } 
+*/
 //--------------------------------------------------------------
 int pack(int op, char *buf, msj_t *package){
 //se le pasa como parametro el tipo de operacion, y un buffer con los campos de datos y devuelve el paquete para hacer send. SI retorna 0 hubo un error
 	
-	package->dlen = sizeof (buf);
+	package->dlen = (uint16_t)strlen(buf);
 	if (package->dlen < 128) {
 		strcpy( package->data,buf);
 	}else return 0;
