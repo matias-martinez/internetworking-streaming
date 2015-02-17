@@ -4,23 +4,22 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-//#include <queue.h>
+#include "list.h"
 #include "tcpDataStreaming.h"
 #include "structures.h"
 
 
-struct fuente{
+struct ListNode {
 	int id;
-	char *ip;
-
-	//definir LISTA!!
-};
+	char *ip;	
+} fuente;
 
 
 
 int main(){
 	
-	int sd=passiveTCPSocket(); //from tdpDataStreaming
+	int sd = passiveTCPSocket(); //from tdpDataStreaming
+    List fuentes;
 	int sdf, lon, recibido;
 	struct sockaddr_in fuente;
 	msj_t mensajeEnvio;
@@ -45,7 +44,7 @@ int main(){
 		printf("Payload Recibida: %s\n", mensajeRecepcion->data);
 		//Agregar Fuente a Lista de Fuentes
 		//Respuesta de Exito
-		pack(3,&resp, &mensajeEnvio);//Envio un RESP
+		pack(3, &resp, &mensajeEnvio);//Envio un RESP
 		lon = sizeof(mensajeEnvio);
 		sendall(sdf, (char *) &mensajeEnvio, &lon );
 
