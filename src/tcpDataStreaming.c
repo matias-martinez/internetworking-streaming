@@ -145,3 +145,27 @@ int pack(int op, char *buf, msj_t *package){
 	}
 	return 1;
 }
+
+//---------------------------------------------------------------
+void wrapstrsep(char *stringIn, int nroTokens, char * out[] ){
+	/*devuelve un array de punteros a strings en out
+	Ejemplo: wrapstrep(data,4,dataPtr); siendo char* data2  y char *dataPtr[4]
+	Longitud vector = Nro Tokens!!	*/
+	//TODO: Control de Errores!
+	unsigned int i;
+	char * aux;
+	size_t ss;
+	for (i=0; i<nroTokens;i++){
+		aux=strsep(&stringIn,";");
+		printf("%s\n",aux);
+		ss=strlen(aux)+1;
+		//aux[ss]="\0";
+		out[i]=malloc(ss);
+
+		//strcpy(tokens[i],aux);
+		strcpy(out[i],aux);
+		printf("%s\n",out[i]);
+	}
+	//return tokens;
+	return 0;
+}//-------------------------------------------------------------

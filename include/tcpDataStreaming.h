@@ -4,4 +4,5 @@ int connectTCP();
 int receiveall ( int sd, char * buffer, int total );
 int sendall ( int sd, char *buf, int len);
 int pack();
+void wrapstrsep(char *stringIn, int nroTokens, char * out[] );
 //int unpack();
