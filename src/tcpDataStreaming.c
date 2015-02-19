@@ -25,11 +25,11 @@
 #define LONG_RESP 3
 
 //Encodings Soportados
+// TODO: arreglar esto, hacer un enum con mime
 #define BINARY 0
 #define TEXT 1
 
 
-//Funcion que devuelve un socket descriptor abierto en modo pasivo.
 int passiveTCPSocket(int port){
 
 	int sd;
@@ -54,9 +54,6 @@ int passiveTCPSocket(int port){
 	return sd;
 }
 
-//--------------------------------------------------------------
-
-//Funcion que devuelve y conecta un socket TCP a otro que esta en listen
 int connectTCP(){
 	
 	int sdc;
@@ -75,27 +72,24 @@ int connectTCP(){
 	return sdc;
 }
 	
-//-----------------------------------------------------------
 
-int receiveall ( int sd, char * buffer, int total ) {
-//devuelve cantidad de bytes recibidos
-	int bytes=1;
-	int leido=0;
+int receiveall (int sd, char * buffer, int total) {
+	int bytes = 1;
+	int leido = 0;
 	
 	while ( (leido < total) && (bytes > 0) ) {
-		bytes = recv ( sd , buffer + leido , total - leido , MSG_WAITALL);
-		if (bytes <0){
+		bytes = recv (sd, buffer + leido, total - leido, MSG_WAITALL);
+		if (bytes < 0){
 			perror("Error en recepcion del mensaje/ receiveall()");
 			break;
 		}
 		leido = leido + bytes;
 	}
-	return ( leido );
+	return leido;
 }
-//-----------------------------------------------------------
+
 
 int sendall (int sd, char *buf, int len){
-//devuelve cantidad de bytes enviados
 
     int total = 0;        
     int bytesleft = len; 
@@ -111,20 +105,12 @@ int sendall (int sd, char *buf, int len){
     total; // en *len guardo los bytes enviados
 
     //return n==-1?-1:0; // return -1 en caso de falla (si pasar len como puntero y no como int)
-    return (total);
+    return total;
 } 
 
-//--------------------------------------------------------------
-/*
-int unpack(int *op){
-//devuelve en un parametro el codigo de tipo de operacion y hace la conversion ntohs
-} 
-*/
-//--------------------------------------------------------------
+
 int pack(int op, char *buf, msj_t *package){
-//se le pasa como parametro el tipo de operacion, y un buffer con los campos de datos y devuelve el paquete para hacer send. SI retorna 0 hubo un error
-	
-	package->dlen = (uint16_t)strlen(buf);
+	package->dlen = (uint16_t) strlen(buf);
 	if (package->dlen < 128) {
 		strcpy( package->data,buf);
 	}else return 0;
@@ -145,3 +131,42 @@ int pack(int op, char *buf, msj_t *package){
 	}
 	return 1;
 }
+
+Get Mensaje_crear_get(int dlen, int idFuente, int op, int idDestino, char data[]) {
+    Get mensaje_get = malloc(size(Get));
+    mensaje_get->dlen = (uint16_t) dlen;
+    mensaje_get->idFuente = (uint16_t) idFuente;
+    mensaje_get->op = (uint8_t) op;
+    mensaje_get->idDestino = (uint16_t) idDestino;
+    mensaje_get->data = data;
+
+    return mensaje_get;
+}
+
+Get Mensaje_recibir_get(int sdf, int dlen) {
+    Get get;
+    char *paquete;
+    int recibidos
+
+    paquete = malloc(sizeof(Get));
+    recibidos = reciveall(sdf);
+    get = (Get *) paquete;
+
+    return get;
+}
+
+void Mensaje_recibir(int sdf, int *opcode, int *dlen) {
+    char *paquete;
+    int recibidos;
+    uint16_t dlen;
+    uint8_t opcode;
+    msj_t *header;
+
+    paquete = malloc(3);
+    recibidos = reciveall(sdf, paquete, 3);
+    header = (msj_t *) paquete;
+    dlen = header->dlen;
+    opcode = header->opcode;
+}
+
+

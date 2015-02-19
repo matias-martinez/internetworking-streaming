@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -9,19 +10,21 @@
 #include "list.h"
 
 
+
 int main(){
 
     List fuentes = List_create(); 
 	int sd = passiveTCPSocket(4567); //from tcpDataStreaming ->recibir puerto como parametro en ejecucion.
+
 	int sdf, lon, recibido, op, dlen, recibidos;
+
 	uint8_t op2;
 	uint16_t dlen2;
+
 	struct sockaddr_in fuente;
-	msj_t *mensajeEnvio;
-	msj_t *mensajeRecepcion;
-	msj_t *header;
-	char *paquete;
-	char *aux;
+	msj_t *mensajeEnvio, *mensajeRecepcion, *header;
+
+	char *paquete, *aux;
 	char resp[3] = "001" ;//dlen =0, tipo=0, codigo=11, VARIABLE: idfuente=001->en este caso al ser solo un dato no lo separo
 	//mensajeEnvio=malloc(sizeof(msj_t));
 	//mensajeRecepcion=malloc(sizeof(msj_t));
@@ -62,18 +65,23 @@ int main(){
 				printf("----\n");
 				strncpy(&aux, mensajeRecepcion->data, 1);
 				op2 = (uint8_t) aux;
-				printf("Operacion Mensaje SUS = %d\n",op );
+				printf("Operacion Mensaje SUS = %d\n", op);
 				if (op2 == 0){
-                    // TODO: Checkear que la fuente no este en la lista
                     // TODO: resolver Hardcodeado
-                    ListNode fuente_node = ListNode_create("plain/text", "temp", inet_ntoa(fuente.sin_addr));
-                    if (fuente_node == NULL) {
-                        printf("fallo la alocacion");
+                    char *ip = inet_ntoa(fuente.sin_addr);
+                    if (List_search_by_ip(fuentes, ip) == -1) {
+                        ListNode fuente_node = ListNode_create("plain/text", "temp", ip);
+                        if (fuente_node == NULL) {
+                            printf("fallo la alocacion");
+                        }
+                        int id = List_push(fuentes, fuente_node);
+                        printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);   
+
+					    //TODO: Contestar RESP exitoso
                     }
-                    int id = List_push(fuentes, fuente_node);
-                    printf("Se asigna a la fuente de ip: %s, el id %d\n", inet_ntoa(fuente.sin_addr), id);
-					// Guardar fuente en lista
-					//Contestar RESP
+                    else {
+                       //TODO: Contestar Resp fallido
+                    }
 				}
 				
 				break;

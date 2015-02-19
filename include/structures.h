@@ -5,28 +5,54 @@
 //#include <stdio.h>
 //#include <stdlib.h>
 //#include <sys/types.h>
+#include <time.h>
 
-typedef struct _msj_ 
-{
+typedef struct TimeStamp {
+    char *dia;
+    char *hora;
+}
+
+typedef struct _msj_ {
 	uint8_t opcode; //Codigo del mensaje
 	uint16_t dlen;//Longitud del campo de datos
 	char data [128];//Long Max = 128B
-}msj_t;
+} msj_t;
 
 
-//int llenarMsj(int opcode, 
-/*
-typedef struct _get_
-{
-	uint_16 idFuente;
-	uint_8 op;
-	uint_16 idDestino;
-}get_t
+typedef struct Get {
+    uint8_t opcode;
+    uint16_t dlen;
+	uint16_t idFuente;
+	uint8_t op;
+	uint16_t idDestino;
+    char data[128];
+}
 
-typedef struct _post_
+typedef struct Post {
+    uint8_t opcode
+    uint16_t dlen;
+    uint16_t idFuente;
+    struct tm timestamp;
+    char data[128];
+}
 
-typedef struct _sus_
+typedef struct Sus {
+	uint8_t opcode;
+    uint16_t dlen;
+	uint8_t op;
+    char data[128];
+}
 
+typedef struct Resp {
+    uint8_t opcode;
+    uint16_t dlen;
+    uint8_t tipo;
+    uint16_t codigo;
+    char data[128];
+    
+}
 
-typedef struct _resp_
-*/
+Get Package_create_get();
+Post Package_create_Post();
+Sus Package_create_Sus();
+Get Package_create_Resp();

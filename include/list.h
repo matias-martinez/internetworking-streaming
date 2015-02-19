@@ -16,12 +16,23 @@ List List_create(void);
 /**
  * Agrega un elemento a la lista.
  *
- * @param una *Lista* donde se añade el nuevo elemento
- * @param un *ListNode* a añadir
+ * @param *List* donde se añade el nuevo elemento
+ * @param *ListNode* a añadir
  * @return -1 si la alocacion falla
  *         index del nuevo elemento
  */
 int List_push(List, ListNode);
+
+/**
+ * Busca un nodo por ip.
+ *
+ * @param *List* donde se busca el *ListNode*
+ * @param *ip* correspondiente a un *ListNode*
+ *
+ * @return index del *ListNode* si se encuentra
+ *         -1 caso contrario
+ */
+int List_search_by_id(List, char *);
 
 /**
  * Crea un nuevo elemento.
