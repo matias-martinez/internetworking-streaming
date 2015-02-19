@@ -66,14 +66,22 @@ int main(){
 				if (op2 == 0){
                     // TODO: Checkear que la fuente no este en la lista
                     // TODO: resolver Hardcodeado
-                    ListNode fuente_node = ListNode_create("plain/text", "temp", inet_ntoa(fuente.sin_addr));
-                    if (fuente_node == NULL) {
-                        printf("fallo la alocacion");
+
+                    char *ip =  inet_ntoa(fuente.sin_addr);
+                    if (List_search_by_ip(fuentes, ip) == -1) {
+                        ListNode fuente_node = ListNode_create("plain/text", "temp", ip);
+                        if (fuente_node == NULL) {
+                            printf("fallo la alocacion");
+                        }
+                        int id = List_push(fuentes, fuente_node);
+                        printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);
+                    } else {
+                        printf("Fuente ya registrada.\n");
                     }
-                    int id = List_push(fuentes, fuente_node);
-                    printf("Se asigna a la fuente de ip: %s, el id %d\n", inet_ntoa(fuente.sin_addr), id);
 					// Guardar fuente en lista
 					//Contestar RESP
+
+				    printf("----\n");
 				}
 				
 				break;

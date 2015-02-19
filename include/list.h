@@ -24,6 +24,17 @@ List List_create(void);
 int List_push(List, ListNode);
 
 /**
+ * Busca un nodo por ip.
+ *
+ * @param *List* donde se busca el *ListNode*
+ * @param *ip* correspondiente a un *ListNode*
+ *
+ * @return index del *ListNode* si se encuentra
+ *         -1 caso contrario
+ */
+int List_search_by_ip(List, char *);
+
+/**
  * Crea un nuevo elemento.
  * @return NULL si la alocacion falla
  */

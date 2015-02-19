@@ -76,6 +76,19 @@ int List_push(List list, ListNode node) {
     return id;
 }
 
+int List_search_by_ip(List list, char * ip) {
+    if (list == NULL) return -1;
+    
+    unsigned int i;
+    for (i = 0; i < list->count; i++) {
+        if (strcmp(list->elements[0]->ip, ip) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 char * List_to_csv(List list) {
     int i;
     char *csv = malloc(150);
