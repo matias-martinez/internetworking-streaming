@@ -12,27 +12,26 @@ int main() {
 
 
 	int sdf = connectTCP();
-	msj_t *paqueteEnvio;
-	msj_t *paqueteRecepcion;
+    Header header;
+	Sus paquete_sus;
+    paquete_sus = malloc(sizeof(Sus));
+    Resp paquete_resp;
 	int len, recibido, enviados;	
-	char data2[250];
-    memset(&data2,0, sizeof(data2));
-	
-	//generar data dinamicamente!	
-	char data1[40]="0;text/plain;medicion temperatura\0";// |op;codificacion;descripcion| Mensaje SUS. OP = 1.
-	//char *payload;
-	//strncpy ( payload , data1 , strlen(data1)-1 );->violacion segmento
-
-	pack(2, data1, paqueteEnvio);//check errors! . 2=SUS.
-	len = strlen(data1)+3; //size of payload + header
-
-	enviados = sendall(sdf, (char *)paqueteEnvio, len);
-	printf("Enviados %d. DLEN  datapaqueteEnvio=%d\n", enviados,paqueteEnvio->dlen);
+//	char data2[250];
+//  memset(&data2, 0, sizeof(data2));
+    
+    paquete_sus = Paquete_crear_sus(0, "text/plain;medicion temperatura");
+    len = Paquete_sus_len(paquete_sus);
+    printf("%i\n", len);
+	enviados = sendall(sdf, (char *) paquete_sus, len);
+	printf("Enviados %d. DLEN  datapaqueteEnvio=%d\n", enviados, paquete_sus->dlen);
+    
 	//esperar rta
-	recibido = receiveall(sdf, data2, 3); //receive. se espera un msj RESP de exito
+
+	recibido = Paquete_recibir_header(sdf);
 	printf("Recibi %d Bytes\n", recibido);
-	paqueteRecepcion = (msj_t *) &data2;
-	printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", paqueteRecepcion->opcode, paqueteRecepcion->dlen);
+    
+    printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
 
 	//en base a Dlen, hacer un receive de lo que falta
 	//paqueteRecepcion = (msj_t *)&data2;

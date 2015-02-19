@@ -1,3 +1,9 @@
+#ifndef _TCPDATASTREAMING_H
+#define _TCPDATASTREAMING_H
+
+
+#include "structures.h"
+
 
 /**
  * Crea un socket descriptor en modo pasivo.
@@ -63,14 +69,5 @@ int pack();
  */
 Get Mensaje_crear_get(int, int, int, int, char[]);
 
-Get Mensaje_recibir_get();
 
-// TODO: docstring de los siguientes metodos
-Post Mensaje_create_Post();
-Post Mensaje_recibir_post();
-
-Sus Mensaje_create_Sus();
-Sus Mensaje_recibir_Sus();
-
-Get Mensaje_create_Resp();
-Get Mensaje_recibir_Resp();
+#endif

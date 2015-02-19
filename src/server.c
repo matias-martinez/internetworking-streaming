@@ -10,63 +10,34 @@
 #include "list.h"
 
 
-
 int main(){
 
     List fuentes = List_create(); 
 	int sd = passiveTCPSocket(4567); //from tcpDataStreaming ->recibir puerto como parametro en ejecucion.
-
-	int sdf, lon, recibido, op, dlen, recibidos;
-
-	uint8_t op2;
-	uint16_t dlen2;
-
+	int sdf, lon;
 	struct sockaddr_in fuente;
-	msj_t *mensajeEnvio, *mensajeRecepcion, *header;
+    Header header;
+    Sus paquete_sus;
 
-	char *paquete, *aux;
-	char resp[3] = "001" ;//dlen =0, tipo=0, codigo=11, VARIABLE: idfuente=001->en este caso al ser solo un dato no lo separo
-	//mensajeEnvio=malloc(sizeof(msj_t));
-	//mensajeRecepcion=malloc(sizeof(msj_t));
 	printf("Servidor DataStreaming - v0.1\n");
 	
-	while (1){
+	while (1) {
 
 		lon = sizeof(fuente);
 		printf("Aguardando connect\n");
 		sdf = accept(sd, (struct sockaddr *) &fuente, &lon);
 		printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
+    
+        header = Paquete_recibir_header(sdf);
 
-		
-		//Hacer receive del HEADER, para luego leer payload
-		//VERSION2		
-		paquete = malloc(3);
-		recibidos = receiveall(sdf, paquete, 3);
-		header = (msj_t *) paquete;
-		//free(paquete);
-
-		//Recepcion Payload
-		printf("Recepcion Header. OP = %d. DLEN= %d. bytesHeader = %d\n", header->opcode, header->dlen, recibidos);
-		//paquete = malloc(header->dlen);
-		dlen2 = header->dlen;
-		op2 = header->opcode;
-		free(paquete);
-		paquete = malloc(dlen2);
-		recibido = receiveall(sdf, paquete, dlen2);
-		printf("Recibi datos %d  %d\n", recibido, dlen2);
-		mensajeRecepcion = malloc(sizeof(msj_t));
-		mensajeRecepcion->opcode = op2;
-		mensajeRecepcion->dlen = dlen2;
-		strcpy(mensajeRecepcion->data, paquete);
-
-		switch(mensajeRecepcion->opcode){
+        printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
+		switch(header->opcode){
 
 			case 2:
+                paquete_sus = Paquete_recibir_sus(sdf, header->dlen);
 				printf("----\n");
-				strncpy(&aux, mensajeRecepcion->data, 1);
-				op2 = (uint8_t) aux;
-				printf("Operacion Mensaje SUS = %d\n", op);
-				if (op2 == 0){
+				printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
+				if (paquete_sus->op == 0){
                     // TODO: resolver Hardcodeado
                     char *ip = inet_ntoa(fuente.sin_addr);
                     if (List_search_by_ip(fuentes, ip) == -1) {

@@ -11,13 +11,13 @@
 #include "tcpDataStreaming.h"
 #include "structures.h"
 
-//Mensajes
+//Paquetes
 #define GET 0
 #define POST 1
 #define SUS 2
 #define RESP 3
 
-//Longitud Header y Carga no util de cada tipo de mensaje
+//Longitud Header y Carga no util de cada tipo de paquete
 #define LONG_HEADER 3
 #define LONG_GET 5
 #define LONG_POST 6
@@ -80,7 +80,7 @@ int receiveall (int sd, char * buffer, int total) {
 	while ( (leido < total) && (bytes > 0) ) {
 		bytes = recv (sd, buffer + leido, total - leido, MSG_WAITALL);
 		if (bytes < 0){
-			perror("Error en recepcion del mensaje/ receiveall()");
+			perror("Error en recepcion del paquete/ receiveall()");
 			break;
 		}
 		leido = leido + bytes;
@@ -89,20 +89,18 @@ int receiveall (int sd, char * buffer, int total) {
 }
 
 
-int sendall (int sd, char *buf, int len){
+int sendall(int sd, char *buf, int len){
 
     int total = 0;        
     int bytesleft = len; 
     int n;
 
     while(total < len) {
-        n = send(sd, buf+total, bytesleft, 0);
+        n = send(sd, buf + total, bytesleft, 0);
         if (n == -1) { break; }
         total += n;
         bytesleft -= n;
     }
-
-    total; // en *len guardo los bytes enviados
 
     //return n==-1?-1:0; // return -1 en caso de falla (si pasar len como puntero y no como int)
     return total;
@@ -132,41 +130,52 @@ int pack(int op, char *buf, msj_t *package){
 	return 1;
 }
 
-Get Mensaje_crear_get(int dlen, int idFuente, int op, int idDestino, char data[]) {
-    Get mensaje_get = malloc(size(Get));
-    mensaje_get->dlen = (uint16_t) dlen;
-    mensaje_get->idFuente = (uint16_t) idFuente;
-    mensaje_get->op = (uint8_t) op;
-    mensaje_get->idDestino = (uint16_t) idDestino;
-    mensaje_get->data = data;
+Get Paquete_crear_get(int dlen, int idFuente, int op, int idDestino, char data[]) {
+    Get paquete_get;
+    paquete_get = (Get) malloc(sizeof(Get));
+    paquete_get->idFuente = (uint16_t) idFuente;
+    paquete_get->op = (uint8_t) op;
+    paquete_get->idDestino = (uint16_t) idDestino;
+    strcpy(paquete_get->data, data);
 
-    return mensaje_get;
+    return paquete_get;
 }
 
-Get Mensaje_recibir_get(int sdf, int dlen) {
-    Get get;
-    char *paquete;
-    int recibidos
+Sus Paquete_crear_sus(int op, char data[]) {
+    Sus paquete_sus;
+    paquete_sus = (Sus) malloc(sizeof(Sus));
+    paquete_sus->opcode = SUS;
+    paquete_sus->dlen = strlen(data);
+    paquete_sus->op = (uint8_t) op;
+    strcpy(paquete_sus->data, data);
 
-    paquete = malloc(sizeof(Get));
-    recibidos = reciveall(sdf);
-    get = (Get *) paquete;
 
-    return get;
+    return paquete_sus;
 }
 
-void Mensaje_recibir(int sdf, int *opcode, int *dlen) {
+int Paquete_sus_len(Sus paquete) {
+    return strlen(paquete->data) + 3;
+}
+
+
+Header Paquete_recibir_header(int sdf) {
     char *paquete;
     int recibidos;
-    uint16_t dlen;
-    uint8_t opcode;
-    msj_t *header;
 
-    paquete = malloc(3);
-    recibidos = reciveall(sdf, paquete, 3);
-    header = (msj_t *) paquete;
-    dlen = header->dlen;
-    opcode = header->opcode;
+    paquete = malloc(sizeof(Header));
+    recibidos = receiveall(sdf, paquete, 3);
+
+    return (Header) paquete; 
+}
+
+Sus Paquete_recibir_sus(int sdf, int dlen) {
+    char *paquete;
+    int recibidos;
+    
+    paquete = malloc(sizeof(Sus));
+    recibidos = receiveall(sdf, paquete, dlen);
+
+    return (Sus) paquete;
 }
 
 
