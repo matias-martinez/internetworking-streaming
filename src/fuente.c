@@ -14,24 +14,21 @@ int main() {
 	int sdf = connectTCP();
     Header header;
 	Sus paquete_sus;
-    paquete_sus = malloc(sizeof(Sus));
-    Resp paquete_resp;
+    paquete_sus = malloc(sizeof(struct Sus));
+    header = malloc(sizeof(struct Header));
 	int len, recibido, enviados;	
-//	char data2[250];
 //  memset(&data2, 0, sizeof(data2));
     
-    paquete_sus = Paquete_crear_sus(0, "text/plain;medicion temperatura");
-    len = Paquete_sus_len(paquete_sus);
-    printf("%i\n", len);
-	enviados = sendall(sdf, (char *) paquete_sus, len);
-	printf("Enviados %d. DLEN  datapaqueteEnvio=%d\n", enviados, paquete_sus->dlen);
+    paquete_sus = Paquete_crear_sus(0, "text/plain;medicion temperatura", header);
+	enviados = Paquete_enviar_sus(sdf, header, paquete_sus);
+	printf("Enviados %d Bytes \n", enviados);
     
 	//esperar rta
 
-	recibido = Paquete_recibir_header(sdf);
-	printf("Recibi %d Bytes\n", recibido);
+//	recibido = Paquete_recibir_header(sdf);
+//	printf("Recibi %d Bytes\n", recibido);
     
-    printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
+//    printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
 
 	//en base a Dlen, hacer un receive de lo que falta
 	//paqueteRecepcion = (msj_t *)&data2;

@@ -102,80 +102,63 @@ int sendall(int sd, char *buf, int len){
         bytesleft -= n;
     }
 
-    //return n==-1?-1:0; // return -1 en caso de falla (si pasar len como puntero y no como int)
     return total;
 } 
 
-
-int pack(int op, char *buf, msj_t *package){
-	package->dlen = (uint16_t) strlen(buf);
-	if (package->dlen < 128) {
-		strcpy( package->data,buf);
-	}else return 0;
-
-	switch (op){
-		case GET:
-			package->opcode = GET;
-			break;
-		case POST:
-			package->opcode = POST;
-			break;
-		case SUS:
-			package->opcode = SUS;
-			break;
-		case RESP:
-			package->opcode = RESP;
-			break;
-	}
-	return 1;
-}
-
-Get Paquete_crear_get(int dlen, int idFuente, int op, int idDestino, char data[]) {
-    Get paquete_get;
-    paquete_get = (Get) malloc(sizeof(Get));
-    paquete_get->idFuente = (uint16_t) idFuente;
-    paquete_get->op = (uint8_t) op;
-    paquete_get->idDestino = (uint16_t) idDestino;
-    strcpy(paquete_get->data, data);
-
-    return paquete_get;
-}
-
-Sus Paquete_crear_sus(int op, char data[]) {
+Sus Paquete_crear_sus(int op, char data[], Header header) {
     Sus paquete_sus;
-    paquete_sus = (Sus) malloc(sizeof(Sus));
-    paquete_sus->opcode = SUS;
-    paquete_sus->dlen = strlen(data);
-    paquete_sus->op = (uint8_t) op;
+
+    paquete_sus = (Sus) malloc(sizeof(struct Sus));
+
+    header->opcode = (uint16_t) SUS;
+    header->dlen = (uint16_t) (strlen(data) + 2); // POR QUE + 2?
+    paquete_sus->op = (uint16_t) op;
     strcpy(paquete_sus->data, data);
-
-
+    
     return paquete_sus;
 }
 
-int Paquete_sus_len(Sus paquete) {
-    return strlen(paquete->data) + 3;
+int Paquete_enviar_sus(int sdf, Header header, Sus paquete) {
+    int byte_send = 0;
+
+    header->opcode = htons(header->opcode);
+    header->dlen = htons(header->dlen);
+
+    paquete->op = htons(paquete->op);
+    
+    byte_send += send(sdf, header, sizeof(struct Header), 0);
+    byte_send += send(sdf, paquete, 2 + strlen(paquete->data) * sizeof(char), 0);
+    return byte_send;
 }
 
 
 Header Paquete_recibir_header(int sdf) {
     char *paquete;
+    Header mensaje;
     int recibidos;
 
     paquete = malloc(sizeof(Header));
-    recibidos = receiveall(sdf, paquete, 3);
+    recibidos = receiveall(sdf, paquete, sizeof(struct Header));
+    mensaje = (Header) paquete;
+    
+    mensaje->opcode = ntohs(mensaje->opcode);
+    mensaje->dlen = ntohs(mensaje->dlen);
 
-    return (Header) paquete; 
+    return mensaje; 
 }
 
 Sus Paquete_recibir_sus(int sdf, int dlen) {
-    char *paquete;
+    
+    void *paquete;
+    Sus mensaje;
     int recibidos;
     
-    paquete = malloc(sizeof(Sus));
+    paquete = malloc(sizeof(struct Sus));
     recibidos = receiveall(sdf, paquete, dlen);
+    mensaje = (Sus) paquete;
 
-    return (Sus) paquete;
+    mensaje->op = ntohs(mensaje->op);
+    return mensaje;
 }
 
 

@@ -31,12 +31,14 @@ int main(){
         header = Paquete_recibir_header(sdf);
 
         printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
-		switch(header->opcode){
+		
+        switch(header->opcode){
 
 			case 2:
                 paquete_sus = Paquete_recibir_sus(sdf, header->dlen);
 				printf("----\n");
 				printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
+                printf("recibi estos datos: %s\n", paquete_sus->data);
 				if (paquete_sus->op == 0){
                     // TODO: resolver Hardcodeado
                     char *ip = inet_ntoa(fuente.sin_addr);
