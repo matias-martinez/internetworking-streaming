@@ -8,9 +8,13 @@
 #include "tcpDataStreaming.h"
 #include "structures.h"
 
-int main() {
+int main(int argc, char *argv[]) {
 
-
+    if (argc != 2)
+    {
+        printf("usage: %s filename\n",argv[0] );
+        exit(1);
+    }
     int sdf = connectTCP();
     Header header;
     Sus paquete_sus;
@@ -18,8 +22,15 @@ int main() {
     paquete_sus = malloc(sizeof(struct Sus));
     paquete_resp = malloc(sizeof(struct Resp));    
     int len, enviados,recibidos;
+    FILE *fp;
+    fp = fopen(argv[1],"rw+");
+    if (fp == NULL) {
+    printf( "Fallo apertura de archivo de entrada de datos. \n");
+  
+    }
 
-    paquete_sus = Mensaje_crear_sus(0, "text/plain\0;medicion temperatura\0");
+
+    paquete_sus = Mensaje_crear_sus(0, "text/plain;medicion temperatura\0");
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
     printf("Enviados %d Bytes - Esperando RESP! \n", enviados);
     
@@ -33,7 +44,9 @@ int main() {
         
     
         printf("MI ID ES %s\n",paquete_resp->data);
+        printf("Comienzo de Envio de Datos hacia el Servidor\n");
         //TODO: ENVIAR POSTS!!
+
 
     }
     close(sdf);

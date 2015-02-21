@@ -41,7 +41,7 @@ int main(){
                 paquete_sus = Mensaje_recibir_sus(sdf, header->dlen);
                 printf("----\n");
                 printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
-                printf("recibi estos datos: %s\n", paquete_sus->data);
+                printf("Recibi estos datos: %s\n", paquete_sus->data);
                 
                 if (paquete_sus->op == 0){
                     // TODO: resolver Hardcodeado
