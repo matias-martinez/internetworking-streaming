@@ -105,6 +105,21 @@ int sendall(int sd, char *buf, int len){
     return total;
 } 
 
+Header Mensaje_recibir_header(int sdf) {
+    char *paquete;
+    Header msj;
+    int recibidos;
+
+    paquete = malloc(sizeof(struct Header));
+    recibidos = receiveall(sdf, paquete, 4);
+    msj = (Header) paquete;
+
+    msj->opcode = ntohs(msj->opcode);
+    msj->dlen = ntohs(msj->dlen);
+
+    return msj;
+}
+
 Sus Mensaje_crear_sus(int op, char data[]) {
     Sus msj;
 
@@ -132,21 +147,6 @@ int Mensaje_enviar_sus(int sdf, Sus msj) {
 }
 
 
-Header Mensaje_recibir_header(int sdf) {
-    char *paquete;
-    Header msj;
-    int recibidos;
-
-    paquete = malloc(sizeof(struct Header));
-    recibidos = receiveall(sdf, paquete, 4);
-    msj = (Header) paquete;
-
-    msj->opcode = ntohs(msj->opcode);
-    msj->dlen = ntohs(msj->dlen);
-
-    return msj;
-}
-
 Sus Mensaje_recibir_sus(int sdf, int dlen) {
     typedef struct {
         uint16_t op;
@@ -169,4 +169,56 @@ Sus Mensaje_recibir_sus(int sdf, int dlen) {
     strcpy(msj->data, playload->data);
 
     return msj;
+}
+
+Resp Mensaje_crear_resp(int tipo, int codigo, char data[]){
+    Resp msj;
+    
+    msj=(Resp)malloc(sizeof(struct Resp));
+
+    msj->opcode=(uint16_t)SUS;
+    msj->dlen=(uint16_t)(strlen(data)+2);
+    msj->tipo=(uint16_t)tipo;
+    msj->codigo=(uint16_t)codigo;
+    strcpy(msj->data, data);
+
+    return msj;
+}
+
+int Mensaje_enviar_resp(int sdf, Resp msj){
+    int byte_send = msj->dlen + 8;
+
+    msj->opcode = htons(msj->opcode);
+    msj->dlen = htons(msj->dlen);
+    msj->tipo = htons(msj->tipo);
+    msj->codigo = htons(msj->codigo);
+
+    return send(sdf, msj, byte_send , 0);
+}
+
+Resp Mensaje_recibir_resp(int sdf, int dlen){
+     typedef struct {
+        uint16_t tipo;
+        uint16_t codigo;
+        char data[dlen];
+    } *Payload;
+
+    Payload payload;
+    char *paquete;
+    Sus msj;
+    int recibidos;
+
+    paquete = malloc(sizeof(struct Resp));
+    msj = malloc(sizeof(struct Resp));
+    playload = (Playload) malloc(132);
+
+    recibidos = receiveall(sdf, paquete, 2 + dlen);
+    payload = (Payload) paquete;
+
+    msj->tipo = ntohs(payload->tipo);
+    msj->codigo = ntohs(payload->codigo);
+    strcpy(msj->data, payload->data);
+
+    return msj;
+
 }
