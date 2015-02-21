@@ -21,6 +21,7 @@ int main(){
     Resp paquete_resp;
     char aux[128];
     
+    
     printf("Servidor DataStreaming - v0.1\n");
 
     while (1) {
@@ -41,6 +42,7 @@ int main(){
                 printf("----\n");
                 printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
                 printf("recibi estos datos: %s\n", paquete_sus->data);
+                
                 if (paquete_sus->op == 0){
                     // TODO: resolver Hardcodeado
                     char *ip = inet_ntoa(fuente.sin_addr);
@@ -67,6 +69,7 @@ int main(){
                 }
                 if (paquete_sus->op==2){
                     //TODO: Borrado de Suscripcion. 
+
 
                 }
 

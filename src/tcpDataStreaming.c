@@ -272,3 +272,26 @@ Post Mensaje_recibir_post(int sdf, int dlen){
 
 }
 //TODO: Mensaje_crear_get ; Mensaje_enviar_get; Mensaje_recibir_get
+
+int wrapstrsep(char *stringIn, int nroTokens, char * out[] ){
+    /*devuelve un array de punteros a strings en out
+    Ejemplo: wrapstrep(data,4,dataPtr); siendo char* data2  y char *dataPtr[4]
+    Longitud vector = Nro Tokens!!  */
+    //TODO: Control de Errores!
+    unsigned int i;
+    char * auxiliar;
+    size_t ss;
+    for (i=0; i<nroTokens;i++){
+        auxiliar=realloc(auxiliar,128);
+        auxiliar=strsep(&stringIn,";");
+     
+        ss=strlen(auxiliar);
+        out[i]=malloc(ss);
+        strcpy(out[i],auxiliar);
+        free(out[i]);
+        free(auxiliar);
+        
+    }
+    //return tokens;
+    return 0;
+}

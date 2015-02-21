@@ -19,7 +19,7 @@ int main() {
     paquete_resp = malloc(sizeof(struct Resp));    
     int len, enviados,recibidos;
 
-    paquete_sus = Mensaje_crear_sus(0, "text/plain;medicion temperatura");
+    paquete_sus = Mensaje_crear_sus(0, "text/plain\0;medicion temperatura\0");
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
     printf("Enviados %d Bytes - Esperando RESP! \n", enviados);
     
