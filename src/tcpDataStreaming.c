@@ -8,6 +8,7 @@
 #include <sys/signal.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
 
@@ -176,7 +177,7 @@ Resp Mensaje_crear_resp(int tipo, int codigo, char data[]){
     
     msj=(Resp)malloc(sizeof(struct Resp));
 
-    msj->opcode=(uint16_t)SUS;
+    msj->opcode=(uint16_t)RESP;
     msj->dlen=(uint16_t)(strlen(data)+2);
     msj->tipo=(uint16_t)tipo;
     msj->codigo=(uint16_t)codigo;
@@ -220,5 +221,54 @@ Resp Mensaje_recibir_resp(int sdf, int dlen){
     strcpy(msj->data, payload->data);
 
     return msj;
+}
+
+Post Mensaje_crear_post(int idFuente, struct tm timestamp, char data []){
+    Post msj;
+    msj=(Resp)malloc(sizeof(struct Post));
+
+    msj->opcode=(uint16_t)POST;
+    msj->dlen=(uint16_t)(strlen(data)+2);
+    msj->idFuente=(uint16_t)idFuente;
+    msj->timestamp=timestamp;
+    strcpy(msj->data, data);
+
+    return msj;
+}
+
+int Mensaje_enviar_post(int sdf,Post msj){
+    int byte_send = msj->dlen +62 ; //+size of 3*uint16_t+size of timestamp
+
+    msj->opcode = htons(msj->opcode);
+    msj->dlen = htons(msj->dlen);
+    msj->idFuente = htons(msj->idFuente);
+
+    return send(sdf, msj, byte_send , 0);
+}
+
+Post Mensaje_recibir_post(int sdf, int dlen){
+    typedef struct {
+        uint16_t idFuente;
+        struct tm timestamp;
+        char data[dlen];
+    } *Payload;
+
+    Payload payload;
+    char *paquete;
+    Post msj;
+    int recibidos;
+
+    paquete = malloc(sizeof(struct Post));
+    msj = malloc(sizeof(struct Post));
+    payload = (Payload) malloc(180);
+
+    recibidos = receiveall(sdf, paquete, 2 + dlen);
+    payload = (Payload) paquete;
+
+    msj->idFuente = ntohs(payload->idFuente);
+    strcpy(msj->data, payload->data);
+
+    return msj;
 
 }
+//TODO: Mensaje_crear_get ; Mensaje_enviar_get; Mensaje_recibir_get
