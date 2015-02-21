@@ -19,6 +19,7 @@ int main(){
     Header header;
     Sus paquete_sus;
     Resp paquete_resp;
+    char aux[128];
     
     printf("Servidor DataStreaming - v0.1\n");
 
@@ -50,8 +51,8 @@ int main(){
                         }
                         int id = List_push(fuentes, fuente_node);
                         printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
-                        //aux = (char )(((int)'0')+id);
-                        paquete_resp = Mensaje_crear_resp(0,11,"0");//TODO:Resolver Harcodeado.Enviar ID! Genera segFault
+                        sprintf(aux, "%d", id);
+                        paquete_resp = Mensaje_crear_resp(0,11,aux);
                         Mensaje_enviar_resp(sdf,paquete_resp);//tipo=0;Codigo=11;data=IDFUENTE
 
                          }
@@ -75,22 +76,7 @@ int main(){
 
         }
 
-        /*
-		//VERSION 1
-		recibido = receiveall(sdf, paquete, 15 );
-		printf("Recibi %d\n", recibido);
-
-		mensajeRecepcion = (msj_t *) paquete;
-
-		printf("Payload Recibida: %s\n", mensajeRecepcion->data);
-		//Agregar Fuente a Lista de Fuentes
-		//Respuesta de Exito
-		pack(3, &resp, &mensajeEnvio);//Envio un RESP
-		lon = sizeof(mensajeEnvio);
-		sendall(sdf, (char *) &mensajeEnvio, lon );
-
-         */
-
+       
         close(sdf);
     }
     close(sd);

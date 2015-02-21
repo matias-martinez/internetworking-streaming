@@ -22,10 +22,13 @@ int main() {
     paquete_sus = Mensaje_crear_sus(0, "text/plain;medicion temperatura");
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
     printf("Enviados %d Bytes - Esperando RESP! \n", enviados);
+    
     header = Mensaje_recibir_header(sdf);
     printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
+    
     paquete_resp = Mensaje_recibir_resp(sdf,header->dlen);
     printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
+    
     if(paquete_resp->tipo==0 && paquete_resp->codigo==11){
         
     
