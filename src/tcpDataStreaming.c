@@ -147,7 +147,6 @@ int Mensaje_enviar_sus(int sdf, Sus msj) {
 
 }
 
-
 Sus Mensaje_recibir_sus(int sdf, int dlen) {
     typedef struct {
         uint16_t op;

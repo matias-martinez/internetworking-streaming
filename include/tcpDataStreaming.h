@@ -71,3 +71,5 @@ Get Mensaje_crear_get(int, int, int, int, char[]);
 
 
 #endif
+
+void wrapstrsep(char *stringIn, int nroTokens, char * out[] );
