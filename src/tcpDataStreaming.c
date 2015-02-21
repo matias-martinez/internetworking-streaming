@@ -205,12 +205,12 @@ Resp Mensaje_recibir_resp(int sdf, int dlen){
 
     Payload payload;
     char *paquete;
-    Sus msj;
+    Resp msj;
     int recibidos;
 
     paquete = malloc(sizeof(struct Resp));
     msj = malloc(sizeof(struct Resp));
-    playload = (Playload) malloc(132);
+    payload = (Payload) malloc(132);
 
     recibidos = receiveall(sdf, paquete, 2 + dlen);
     payload = (Payload) paquete;

@@ -18,7 +18,8 @@ int main(){
     struct sockaddr_in fuente;
     Header header;
     Sus paquete_sus;
-
+    Resp paquete_resp;
+    
     printf("Servidor DataStreaming - v0.1\n");
 
     while (1) {
@@ -48,13 +49,24 @@ int main(){
                             printf("fallo la alocacion");
                         }
                         int id = List_push(fuentes, fuente_node);
-                        printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);   
+                        printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
+                        //aux = (char )(((int)'0')+id);
+                        paquete_resp = Mensaje_crear_resp(0,11,"0");//TODO:Resolver Harcodeado.Enviar ID! Genera segFault
+                        Mensaje_enviar_resp(sdf,paquete_resp);//tipo=0;Codigo=11;data=IDFUENTE
 
-                        //TODO: Contestar RESP exitoso
-                    }
+                         }
                     else {
-                        //TODO: Contestar Resp fallido
+                        paquete_resp = Mensaje_crear_resp(1,21,"");//Tipo=1;Codigo=21;Data=NULL
+                        Mensaje_enviar_resp(sdf,paquete_resp);
+
                     }
+                }
+                if (paquete_sus->op==1){
+                    //TODO: Solicitud de Sucripcion de Consumidor. Proxima Version.
+                }
+                if (paquete_sus->op==2){
+                    //TODO: Borrado de Suscripcion. 
+
                 }
 
                 break;
