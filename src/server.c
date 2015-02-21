@@ -19,6 +19,7 @@ int main(){
     Header header;
     Sus paquete_sus;
     Resp paquete_resp;
+    Post paquete_post;
     char aux[128];
     
     
@@ -55,7 +56,9 @@ int main(){
                         printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
                         sprintf(aux, "%d", id);
                         paquete_resp = Mensaje_crear_resp(0,11,aux);
-                        Mensaje_enviar_resp(sdf,paquete_resp);//tipo=0;Codigo=11;data=IDFUENTE
+                        Mensaje_enviar_resp(sdf,paquete_resp);//tipo=0;Codigo=11;data=IDFUENTE                  
+
+
 
                          }
                     else {

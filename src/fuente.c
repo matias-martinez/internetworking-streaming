@@ -15,13 +15,20 @@ int main(int argc, char *argv[]) {
         printf("usage: %s filename\n",argv[0] );
         exit(1);
     }
+
     int sdf = connectTCP();
     Header header;
     Sus paquete_sus;
     Resp paquete_resp;
+    Post paquete_post;
     paquete_sus = malloc(sizeof(struct Sus));
     paquete_resp = malloc(sizeof(struct Resp));    
-    int len, enviados,recibidos;
+    int len, enviados,recibidos,id;
+    time_t rawtime;
+    struct tm *timestamp;
+    char* temp =malloc(5);//alberga lineas leidas del archivo
+
+
     FILE *fp;
     fp = fopen(argv[1],"rw+");
     if (fp == NULL) {
@@ -42,13 +49,22 @@ int main(int argc, char *argv[]) {
     
     if(paquete_resp->tipo==0 && paquete_resp->codigo==11){
         
-    
-        printf("MI ID ES %s\n",paquete_resp->data);
+        id=atoi(paquete_resp->data);
+        printf("Mi ID ES %d\n",id );
+        //printf("MI ID ES %s\n",paquete_resp->data);
         printf("Comienzo de Envio de Datos hacia el Servidor\n");
-        //TODO: ENVIAR POSTS!!
-
-
-    }
+        // ENVIo POSTS!!
+        while (fscanf(fp, "%s", temp) != EOF) {            
+            time(&rawtime);
+            printf("%s\n",temp );
+            timestamp = localtime(&rawtime);
+            paquete_post = Mensaje_crear_post(id,timestamp,temp);
+            Mensaje_enviar_post(sdf,paquete_post);
+            }
+        }else{
+            printf("Recibi un Codigo de Error. Saliendo...\n");
+            exit(1);
+        }
     close(sdf);
 
     return 0;
