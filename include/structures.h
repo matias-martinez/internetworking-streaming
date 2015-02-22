@@ -32,7 +32,7 @@ typedef struct Post {
     uint16_t opcode;
     uint16_t dlen;
     uint16_t idFuente;
-    struct tm timestamp;
+    uint32_t timestamp;
     char data[128];
 } *Post;
 

@@ -151,22 +151,22 @@ Sus Mensaje_recibir_sus(int sdf, int dlen) {
     typedef struct {
         uint16_t op;
         char data[dlen];
-    } *Playload;
+    } *Payload;
 
-    Playload playload;
+    Payload payload;
     char *paquete;
     Sus msj;
     int recibidos;
 
     paquete = malloc(sizeof(struct Sus));
     msj = malloc(sizeof(struct Sus));
-    playload = (Playload) malloc(130);
+    payload = (Payload) malloc(130);
 
     recibidos = receiveall(sdf, paquete, 2 + dlen);
-    playload = (Playload) paquete;
+    payload = (Payload) paquete;
 
-    msj->op = ntohs(playload->op);
-    strcpy(msj->data, playload->data);
+    msj->op = ntohs(payload->op);
+    strcpy(msj->data, payload->data);
 
     return msj;
 }
@@ -222,12 +222,12 @@ Resp Mensaje_recibir_resp(int sdf, int dlen){
     return msj;
 }
 
-Post Mensaje_crear_post(int idFuente, struct tm timestamp, char data []){
+Post Mensaje_crear_post(int idFuente, uint32_t timestamp, char data []){
     Post msj;
     msj = (Resp) malloc(sizeof(struct Post));
     
     msj->opcode = (uint16_t) POST;
-    msj->dlen = (uint16_t) (strlen(data) + 2);
+    msj->dlen = (uint16_t) strlen(data);
     msj->idFuente = (uint16_t) idFuente;
     msj->timestamp = timestamp;
     strcpy(msj->data, data);
@@ -235,12 +235,14 @@ Post Mensaje_crear_post(int idFuente, struct tm timestamp, char data []){
     return msj;
 }
 
-int Mensaje_enviar_post(int sdf,Post msj){
-    int byte_send = msj->dlen + 62 ; //+size of 3*uint16_t+size of timestamp
+int Mensaje_enviar_post(int sdf, Post msj){
+    int byte_send = msj->dlen + 14; //+size of 3*uint16_t+size of time_t
 
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
     msj->idFuente = htons(msj->idFuente);
+    msj->timestamp = htonl(msj->timestamp);
+    
 
     return send(sdf, msj, byte_send , 0);
 }
@@ -248,7 +250,7 @@ int Mensaje_enviar_post(int sdf,Post msj){
 Post Mensaje_recibir_post(int sdf, int dlen){
     typedef struct {
         uint16_t idFuente;
-        struct tm timestamp;
+        uint32_t timestamp;
         char data[dlen];
     } *Payload;
 
@@ -259,12 +261,13 @@ Post Mensaje_recibir_post(int sdf, int dlen){
 
     paquete = malloc(sizeof(struct Post));
     msj = malloc(sizeof(struct Post));
-    payload = (Payload) malloc(180);
+    payload = (Payload) malloc(10 + dlen);
 
-    recibidos = receiveall(sdf, paquete, 2 + dlen);
+    recibidos = receiveall(sdf, paquete, 10 + dlen);
     payload = (Payload) paquete;
 
     msj->idFuente = ntohs(payload->idFuente);
+    msj->timestamp = ntohl(payload->timestamp);
     strcpy(msj->data, payload->data);
 
     return msj;

@@ -52,10 +52,9 @@ int main(int argc, char *argv[]) {
         while (fscanf(fp, "%s", temp) != EOF) {   
             //TODO: Fix Campo DATA
             sdf = connectTCP();         
-            time(&rawtime);
-            timestamp = localtime(&rawtime);
-            paquete_post = Mensaje_crear_post(id, timestamp, temp);
-            printf("Campo DATA enviado:%s\n", paquete_post->data);
+            uint32_t tm = time(NULL);
+            paquete_post = Mensaje_crear_post(id, tm, temp);
+            printf("Campo DATA enviado: %s, timestamp: %d\n", paquete_post->data, paquete_post->timestamp);
             Mensaje_enviar_post(sdf,paquete_post);
 
             header = Mensaje_recibir_header(sdf);

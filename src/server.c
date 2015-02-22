@@ -43,7 +43,7 @@ int main(){
                 printf("----\n");
                 printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
                 printf("Recibi estos datos: %s\t", paquete_post->data);
-                printf("Con este timestamp: %s\n", paquete_post->timestamp);
+                printf("Con este timestamp: %d\n", paquete_post->timestamp);
                 
                 if (List_search_by_id(fuentes, paquete_post->idFuente) != -1) {
                     // TODO Agregar datos al buffer de la fuente
