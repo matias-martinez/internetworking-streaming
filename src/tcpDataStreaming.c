@@ -224,7 +224,7 @@ Resp Mensaje_recibir_resp(int sdf, int dlen){
 
 Post Mensaje_crear_post(int idFuente, struct tm timestamp, char data []){
     Post msj;
-    msj=(Resp)malloc(sizeof(struct Post));
+    msj=(Post)malloc(sizeof(struct Post));
 
     msj->opcode=(uint16_t)POST;
     msj->dlen=(uint16_t)(strlen(data)+2);

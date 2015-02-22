@@ -26,11 +26,11 @@ int main(int argc, char *argv[]) {
     int len, enviados,recibidos,id;
     time_t rawtime;
     struct tm *timestamp;
-    char* temp =malloc(5);//alberga lineas leidas del archivo
+    char* temp =malloc(128);//alberga lineas leidas del archivo
 
 
     FILE *fp;
-    fp = fopen(argv[1],"rw+");
+    fp = fopen(argv[1],"rw");
     if (fp == NULL) {
     printf( "Fallo apertura de archivo de entrada de datos. \n");
   
@@ -46,20 +46,24 @@ int main(int argc, char *argv[]) {
     
     paquete_resp = Mensaje_recibir_resp(sdf,header->dlen);
     printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
-    
+    close(sdf);
     if(paquete_resp->tipo==0 && paquete_resp->codigo==11){
-        
+       
         id=atoi(paquete_resp->data);
         printf("Mi ID ES %d\n",id );
-        //printf("MI ID ES %s\n",paquete_resp->data);
         printf("Comienzo de Envio de Datos hacia el Servidor\n");
         // ENVIo POSTS!!
-        while (fscanf(fp, "%s", temp) != EOF) {            
+       while (fscanf(fp, "%s", temp) != EOF) {   
+            //TODO: Fix Campo DATA
+            sdf = connectTCP();         
             time(&rawtime);
             printf("%s\n",temp );
             timestamp = localtime(&rawtime);
             paquete_post = Mensaje_crear_post(id,timestamp,temp);
+            printf("Campo DATA enviado:%s\n",paquete_post->data);
             Mensaje_enviar_post(sdf,paquete_post);
+            close(sdf);
+            temp=realloc(temp,128);
             }
         }else{
             printf("Recibi un Codigo de Error. Saliendo...\n");

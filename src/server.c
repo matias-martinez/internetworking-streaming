@@ -25,6 +25,7 @@ int main(){
     
     printf("Servidor DataStreaming - v0.1\n");
 
+
     while (1) {
 
         lon = sizeof(fuente);
@@ -72,11 +73,13 @@ int main(){
                 }
                 if (paquete_sus->op==2){
                     //TODO: Borrado de Suscripcion. 
-
-
                 }
 
                 break;
+
+                case 1:
+                    paquete_post = Mensaje_recibir_post(sdf,header->dlen);
+                    printf("Data Mensaje POST: %s\n",paquete_post->data);
 
 
 
