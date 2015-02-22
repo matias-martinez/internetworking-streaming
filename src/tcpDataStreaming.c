@@ -127,7 +127,7 @@ Sus Mensaje_crear_sus(int op, char data[]) {
     msj = (Sus) malloc(sizeof(struct Sus));
 
     msj->opcode = (uint16_t) SUS;
-    msj->dlen = (uint16_t) (strlen(data) + 2); // POR QUE + 2?
+    msj->dlen = (uint16_t) (strlen(data) ); // POR QUE + 2?
     msj->op = (uint16_t) op;
     strcpy(msj->data, data);
 

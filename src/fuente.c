@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     fp = fopen(argv[1],"rw");
     if (fp == NULL) {
         printf( "Fallo apertura de archivo de entrada de datos. \n");
+        exit(1);
     }
 
 
@@ -68,6 +69,18 @@ int main(int argc, char *argv[]) {
         }else{
             printf("Recibi un Codigo de Error. Saliendo...\n");
             exit(1);
+    }
+    sdf = connectTCP(); 
+    temp = realloc(temp, 4);
+    sprintf(temp, "%d", id);
+    paquete_sus = Mensaje_crear_sus(2,temp);
+    Mensaje_enviar_sus(sdf,paquete_sus);
+    header = Mensaje_recibir_header(sdf);
+    paquete_resp = Mensaje_recibir_resp(sdf,header->dlen);
+    if(paquete_resp->tipo==0 ){
+            printf("Fuente Desconectada! Saliendo...\n");
+    }else{
+            printf("Falló Desuscripcion. Saliendo...\n");
     }
     close(sdf);
 

@@ -23,13 +23,13 @@ int main(){
     char aux[128];
     
     
-    printf("Servidor DataStreaming - v0.1\n");
-
+    printf("|||| Servidor DataStreaming - v0.1 ||||\n");
+    printf("---------------------------------------\n");
 
     while (1) {
 
         lon = sizeof(fuente);
-        printf("Aguardando connect\n");
+        printf("- Aguardando connect -\n");
         sdf = accept(sd, (struct sockaddr *) &fuente, &lon);
         printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
 
@@ -40,7 +40,6 @@ int main(){
         switch(header->opcode){
             case 1:
                 paquete_post = Mensaje_recibir_post(sdf, header->dlen);
-                printf("----\n");
                 printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
                 printf("Recibi estos datos: %s\t", paquete_post->data);
                 printf("Con este timestamp: %d\n", paquete_post->timestamp);
@@ -53,11 +52,10 @@ int main(){
                     paquete_resp = Mensaje_crear_resp(1, 22, "");
                     Mensaje_enviar_resp(sdf, paquete_resp);
                 }
-                printf("----\n");
+                printf("---------------------------------------\n");
                 break;
             case 2:
                 paquete_sus = Mensaje_recibir_sus(sdf, header->dlen);
-                printf("----\n");
                 printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
                 printf("Recibi estos datos: %s\n", paquete_sus->data);
                 
@@ -73,13 +71,14 @@ int main(){
                         printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
                         sprintf(aux, "%d", id);
                         paquete_resp = Mensaje_crear_resp(0, 11, aux);
-                        Mensaje_enviar_resp(sdf, paquete_resp);             //tipo=0;Codigo=11;data=IDFUENTE                  
+                        Mensaje_enviar_resp(sdf, paquete_resp);             //tipo=0;Codigo=11;data=IDFUENTE   
+
                     }
                     else {
                         paquete_resp = Mensaje_crear_resp(1, 21, "");         //Tipo=1;Codigo=21;Data=NULL
                         Mensaje_enviar_resp(sdf,paquete_resp);
                     }
-                    printf("----\n");
+                    printf("---------------------------------------\n");
                 }
                 if (paquete_sus->op == 1){
                     //TODO: Solicitud de Sucripcion de Consumidor. Proxima Version.
@@ -87,12 +86,16 @@ int main(){
                 if (paquete_sus->op == 2){
                     char *ip = inet_ntoa(fuente.sin_addr);
                     int id;
-                    if ((id = List_search_by_ip(fuente, ip)) != -1) {
+                    if ((id = List_search_by_ip(fuentes, ip)) != -1) {
                         List_delete_by_id(fuentes, id);
                         paquete_resp = Mensaje_crear_resp(0, 11, "");
+                        printf("La Fuente con ID %d se DESUSCRIBIO!\n",id );
                     } else {
                         paquete_resp = Mensaje_crear_resp(1, 21, "");
+                        printf("Mensaje de desuscripcion con Id inexistente..\n",id );
+                        printf("---------------------------------------\n");
                     }
+                    printf("---------------------------------------\n");
                 }
                 break;
         }
