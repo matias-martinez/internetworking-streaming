@@ -95,13 +95,6 @@ int main(){
                     }
                 }
                 break;
-
-                case 10:
-                    paquete_post = Mensaje_recibir_post(sdf,header->dlen);
-                    printf("Data Mensaje POST: %s\n",paquete_post->data);
-
-
-
         }
 
        

@@ -236,7 +236,7 @@ Post Mensaje_crear_post(int idFuente, uint32_t timestamp, char data []){
 }
 
 int Mensaje_enviar_post(int sdf, Post msj){
-    int byte_send = msj->dlen + 14; //+size of 3*uint16_t+size of time_t
+    int byte_send = msj->dlen + 12; //+size of 3*uint16_t+size of time_t
 
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
@@ -261,9 +261,9 @@ Post Mensaje_recibir_post(int sdf, int dlen){
 
     paquete = malloc(sizeof(struct Post));
     msj = malloc(sizeof(struct Post));
-    payload = (Payload) malloc(10 + dlen);
+    payload = (Payload) malloc(8 + dlen);
 
-    recibidos = receiveall(sdf, paquete, 10 + dlen);
+    recibidos = receiveall(sdf, paquete, 8 + dlen);
     payload = (Payload) paquete;
 
     msj->idFuente = ntohs(payload->idFuente);
