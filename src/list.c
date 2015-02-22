@@ -89,6 +89,13 @@ int List_search_by_ip(List list, char * ip) {
     return -1;
 } 
 
+int List_search_by_id(List list, int id) {
+    if (list == NULL || list->count > id || list->elements[id] == NULL) {
+        return -1;
+    } else
+        return id;
+}
+
 char * List_to_csv(List list) {
     int i;
     char *csv = malloc(150);

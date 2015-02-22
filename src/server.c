@@ -37,7 +37,23 @@ int main(){
         printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
 
         switch(header->opcode){
-
+            case 1:
+                paquete_post = Mensaje_recibir_post(sdf, header->dlen);
+                printf("----\n");
+                printf("Operacion Mensaje SUS = %d\n", paquete_post->idFuente);
+                printf("Recibi estos datos: %s\n", paquete_post->data);
+                printf("Con este timestamp: %s\n", paquete_post->timestamp);
+                
+                if (List_search_by_id(fuentes, paquete_post->idFuente) != -1) {
+                    // TODO Agregar datos al buffer de la fuente
+                    paquete_resp = Mensaje_crear_resp(0, 13, "");
+                    Mensaje_enviar_resp(sdf, paquete_resp);
+                } else {
+                    paquete_resp = Mensaje_crear_resp(1, 22, "");
+                    Mensaje_enviar_resp(sdf, paquete_resp);
+                }
+                printf("----\n");
+                break;
             case 2:
                 paquete_sus = Mensaje_recibir_sus(sdf, header->dlen);
                 printf("----\n");
@@ -45,37 +61,38 @@ int main(){
                 printf("Recibi estos datos: %s\n", paquete_sus->data);
                 
                 if (paquete_sus->op == 0){
-                    // TODO: resolver Hardcodeado
                     char *ip = inet_ntoa(fuente.sin_addr);
+                    char **datos = wrapstrsep(paquete_sus->data, ";");
                     if (List_search_by_ip(fuentes, ip) == -1) {
-                        ListNode fuente_node = ListNode_create("plain/text", "temp", ip);
+                        ListNode fuente_node = ListNode_create(datos[0], datos[1], ip);
                         if (fuente_node == NULL) {
                             printf("fallo la alocacion");
                         }
                         int id = List_push(fuentes, fuente_node);
                         printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
                         sprintf(aux, "%d", id);
-                        paquete_resp = Mensaje_crear_resp(0,11,aux);
-                        Mensaje_enviar_resp(sdf,paquete_resp);//tipo=0;Codigo=11;data=IDFUENTE                  
-
-
-
-                         }
-                    else {
-                        paquete_resp = Mensaje_crear_resp(1,21,"");//Tipo=1;Codigo=21;Data=NULL
-                        Mensaje_enviar_resp(sdf,paquete_resp);
-
+                        paquete_resp = Mensaje_crear_resp(0, 11, aux);
+                        Mensaje_enviar_resp(sdf, paquete_resp);             //tipo=0;Codigo=11;data=IDFUENTE                  
                     }
+                    else {
+                        paquete_resp = Mensaje_crear_resp(1, 21, "");         //Tipo=1;Codigo=21;Data=NULL
+                        Mensaje_enviar_resp(sdf,paquete_resp);
+                    }
+                    printf("----\n");
                 }
-                if (paquete_sus->op==1){
+                if (paquete_sus->op == 1){
                     //TODO: Solicitud de Sucripcion de Consumidor. Proxima Version.
                 }
-                if (paquete_sus->op==2){
-                    //TODO: Borrado de Suscripcion. 
-
-
+                if (paquete_sus->op == 2){
+                    char *ip = inet_ntoa(fuente.sin_addr);
+                    int id;
+                    if ((id = List_search_by_ip(fuente, ip)) != -1) {
+                        List_delete_by_id(fuentes, id);
+                        paquete_resp = Mensaje_crear_resp(0, 11, "");
+                    } else {
+                        paquete_resp = Mensaje_crear_resp(1, 21, "");
+                    }
                 }
-
                 break;
 
 

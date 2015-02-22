@@ -32,7 +32,7 @@ int List_push(List, ListNode);
  * @return index del *ListNode* si se encuentra
  *         -1 caso contrario
  */
-int List_search_by_id(List, char *);
+int List_search_by_id(List, int);
 
 /**
  * Crea un nuevo elemento.

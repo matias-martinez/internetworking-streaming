@@ -70,6 +70,14 @@ int pack();
 Get Mensaje_crear_get(int, int, int, int, char[]);
 
 
-#endif
+/**
+ * Separa la cadena *str* en tokens usando como delimitador *delim*
+ *
+ * @param const char \*str
+ * @param const char \*delim 
+ *
+ * @return un array de tokens
+ */
+char **wrapstrsep(const char *str, const char *delim);
 
-void wrapstrsep(char *stringIn, int nroTokens, char * out[] );
+#endif

@@ -2,7 +2,7 @@ EXECUTABLES = fuente server
 SRCDIR = src
 BINDIR = bin
 INC = -I include
-CXXFLAGS = -g
+CXXFLAGS = -g -w
 
 all: build $(EXECUTABLES)
 

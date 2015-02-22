@@ -173,13 +173,14 @@ Sus Mensaje_recibir_sus(int sdf, int dlen) {
 
 Resp Mensaje_crear_resp(int tipo, int codigo, char data[]){
     Resp msj;
-    
-    msj=(Resp)malloc(sizeof(struct Resp));
 
-    msj->opcode=(uint16_t)RESP;
-    msj->dlen=(uint16_t)(strlen(data)+2);
-    msj->tipo=(uint16_t)tipo;
-    msj->codigo=(uint16_t)codigo;
+    msj = (Resp) malloc(sizeof(struct Resp));
+
+    printf("opcode: %d, dlen: %d, tipo: %d, codigo: %d\n", msj->opcode, msj->dlen, msj->tipo, msj->codigo);
+    msj->opcode = (uint16_t) RESP;
+    msj->dlen = (uint16_t) 0;
+    msj->tipo = (uint16_t) tipo;
+    msj->codigo = (uint16_t) codigo;
     strcpy(msj->data, data);
 
     return msj;
@@ -188,12 +189,13 @@ Resp Mensaje_crear_resp(int tipo, int codigo, char data[]){
 int Mensaje_enviar_resp(int sdf, Resp msj){
     int byte_send = msj->dlen + 8;
 
+    printf("opcode: %d, dlen: %d, tipo: %d, codigo: %d\n", msj->opcode, msj->dlen, msj->tipo, msj->codigo);
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
     msj->tipo = htons(msj->tipo);
     msj->codigo = htons(msj->codigo);
 
-    return send(sdf, msj, byte_send , 0);
+    return send(sdf, msj, byte_send, 0);
 }
 
 Resp Mensaje_recibir_resp(int sdf, int dlen){
@@ -212,7 +214,7 @@ Resp Mensaje_recibir_resp(int sdf, int dlen){
     msj = malloc(sizeof(struct Resp));
     payload = (Payload) malloc(132);
 
-    recibidos = receiveall(sdf, paquete, 2 + dlen);
+    recibidos = receiveall(sdf, paquete, 6 + dlen);
     payload = (Payload) paquete;
 
     msj->tipo = ntohs(payload->tipo);
@@ -224,19 +226,19 @@ Resp Mensaje_recibir_resp(int sdf, int dlen){
 
 Post Mensaje_crear_post(int idFuente, struct tm timestamp, char data []){
     Post msj;
-    msj=(Resp)malloc(sizeof(struct Post));
+    msj = (Resp) malloc(sizeof(struct Post));
 
-    msj->opcode=(uint16_t)POST;
-    msj->dlen=(uint16_t)(strlen(data)+2);
-    msj->idFuente=(uint16_t)idFuente;
-    msj->timestamp=timestamp;
+    msj->opcode = (uint16_t) POST;
+    msj->dlen = (uint16_t) (strlen(data) + 2);
+    msj->idFuente = (uint16_t) idFuente;
+    msj->timestamp = timestamp;
     strcpy(msj->data, data);
 
     return msj;
 }
 
 int Mensaje_enviar_post(int sdf,Post msj){
-    int byte_send = msj->dlen +62 ; //+size of 3*uint16_t+size of timestamp
+    int byte_send = msj->dlen + 62 ; //+size of 3*uint16_t+size of timestamp
 
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
@@ -272,25 +274,33 @@ Post Mensaje_recibir_post(int sdf, int dlen){
 }
 //TODO: Mensaje_crear_get ; Mensaje_enviar_get; Mensaje_recibir_get
 
-void wrapstrsep(char *stringIn, int nroTokens, char * out[] ){
-    /*devuelve un array de punteros a strings en out
-    Ejemplo: wrapstrep(data,4,dataPtr); siendo char* data2  y char *dataPtr[4]
-    Longitud vector = Nro Tokens!!  */
-    //TODO: Control de Errores!
-    unsigned int i;
-    char * auxiliar;
-    size_t ss;
-    for (i=0; i<nroTokens;i++){
-        auxiliar=realloc(auxiliar,128);
-        auxiliar=strsep(&stringIn,";");
-     
-        ss=strlen(auxiliar);
-        out[i]=malloc(ss);
-        strcpy(out[i],auxiliar);
-        free(out[i]);
-        free(auxiliar);
-        
+size_t getNroTokens(const char *str, const char *delim) {
+    unsigned int nroTokens, i;
+
+    for (i = 0; i < strlen(str); i++) {
+        if (str[i] == *delim) {
+            nroTokens += 1;
+        }
     }
-    //return tokens;
-    return 0;
+    return nroTokens;
 }
+
+char **wrapstrsep(const char* str, const char* delim) {
+    char *s = strdup(str);
+    size_t tokens_alloc = getNroTokens(str, delim);
+    size_t tokens_used = 0;
+
+    if (tokens_alloc == 0) {
+        return NULL;
+    }
+
+    char **tokens = calloc(tokens_alloc, sizeof(char *));
+    char *token, *rest = s;
+
+    while ((token = strsep(&rest, delim)) != NULL) {
+        tokens[tokens_used++] = strdup(token);
+    }
+
+    return tokens;
+}
+

@@ -21,12 +21,10 @@ int main(int argc, char *argv[]) {
     Sus paquete_sus;
     Resp paquete_resp;
     Post paquete_post;
-    paquete_sus = malloc(sizeof(struct Sus));
-    paquete_resp = malloc(sizeof(struct Resp));    
     int len, enviados,recibidos,id;
     time_t rawtime;
     struct tm *timestamp;
-    char* temp =malloc(5);//alberga lineas leidas del archivo
+    char* temp = malloc(5); //alberga lineas leidas del archivo
 
 
     FILE *fp;
@@ -47,24 +45,30 @@ int main(int argc, char *argv[]) {
     paquete_resp = Mensaje_recibir_resp(sdf,header->dlen);
     printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
     
-    if(paquete_resp->tipo==0 && paquete_resp->codigo==11){
+    if(paquete_resp->tipo == 0 && paquete_resp->codigo == 11){
         
-        id=atoi(paquete_resp->data);
-        printf("Mi ID ES %d\n",id );
-        //printf("MI ID ES %s\n",paquete_resp->data);
+        id = atoi(paquete_resp->data);
+        printf("Mi ID ES %d\n", id);
         printf("Comienzo de Envio de Datos hacia el Servidor\n");
         // ENVIo POSTS!!
+        // Modificar condicion de while
         while (fscanf(fp, "%s", temp) != EOF) {            
             time(&rawtime);
-            printf("%s\n",temp );
+            printf("%s\n", temp);
             timestamp = localtime(&rawtime);
-            paquete_post = Mensaje_crear_post(id,timestamp,temp);
-            Mensaje_enviar_post(sdf,paquete_post);
-            }
-        }else{
-            printf("Recibi un Codigo de Error. Saliendo...\n");
-            exit(1);
+            paquete_post = Mensaje_crear_post(id, timestamp, temp);
+            Mensaje_enviar_post(sdf, paquete_post);
+        
+            header = Mensaje_recibir_header(sdf);
+            printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
+
+            paquete_resp = Mensaje_recibir_resp(sdf,header->dlen);
+            printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
         }
+    } else {
+        printf("Recibi un Codigo de Error. Saliendo...\n");
+        exit(1);
+    }
     close(sdf);
 
     return 0;
