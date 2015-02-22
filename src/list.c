@@ -90,7 +90,7 @@ int List_search_by_ip(List list, char * ip) {
 } 
 
 int List_search_by_id(List list, int id) {
-    if (list == NULL || list->count > id || list->elements[id] == NULL) {
+    if (list == NULL || list->count < id || list->elements[id] == NULL) {
         return -1;
     } else
         return id;

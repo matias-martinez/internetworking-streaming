@@ -176,7 +176,6 @@ Resp Mensaje_crear_resp(int tipo, int codigo, char data[]){
 
     msj = (Resp) malloc(sizeof(struct Resp));
 
-    printf("opcode: %d, dlen: %d, tipo: %d, codigo: %d\n", msj->opcode, msj->dlen, msj->tipo, msj->codigo);
     msj->opcode = (uint16_t) RESP;
     msj->dlen = (uint16_t) 0;
     msj->tipo = (uint16_t) tipo;
@@ -189,7 +188,6 @@ Resp Mensaje_crear_resp(int tipo, int codigo, char data[]){
 int Mensaje_enviar_resp(int sdf, Resp msj){
     int byte_send = msj->dlen + 8;
 
-    printf("opcode: %d, dlen: %d, tipo: %d, codigo: %d\n", msj->opcode, msj->dlen, msj->tipo, msj->codigo);
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
     msj->tipo = htons(msj->tipo);
@@ -227,7 +225,7 @@ Resp Mensaje_recibir_resp(int sdf, int dlen){
 Post Mensaje_crear_post(int idFuente, struct tm timestamp, char data []){
     Post msj;
     msj = (Resp) malloc(sizeof(struct Post));
-
+    
     msj->opcode = (uint16_t) POST;
     msj->dlen = (uint16_t) (strlen(data) + 2);
     msj->idFuente = (uint16_t) idFuente;

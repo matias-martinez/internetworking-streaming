@@ -25,6 +25,7 @@ int main(){
     
     printf("Servidor DataStreaming - v0.1\n");
 
+
     while (1) {
 
         lon = sizeof(fuente);
@@ -40,8 +41,8 @@ int main(){
             case 1:
                 paquete_post = Mensaje_recibir_post(sdf, header->dlen);
                 printf("----\n");
-                printf("Operacion Mensaje SUS = %d\n", paquete_post->idFuente);
-                printf("Recibi estos datos: %s\n", paquete_post->data);
+                printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
+                printf("Recibi estos datos: %s\t", paquete_post->data);
                 printf("Con este timestamp: %s\n", paquete_post->timestamp);
                 
                 if (List_search_by_id(fuentes, paquete_post->idFuente) != -1) {
@@ -94,6 +95,10 @@ int main(){
                     }
                 }
                 break;
+
+                case 10:
+                    paquete_post = Mensaje_recibir_post(sdf,header->dlen);
+                    printf("Data Mensaje POST: %s\n",paquete_post->data);
 
 
 
