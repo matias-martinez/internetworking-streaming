@@ -8,16 +8,9 @@
 
 
 typedef struct Header {
-    uint16_t opcode;   //Codigo del mensaje
-    uint16_t dlen;    //Longitud del campo de datos
+    uint16_t opcode;   
+    uint16_t dlen;    
 } *Header;
-
-typedef struct _msj_ {
-    uint16_t opcode;   //Codigo del mensaje
-    uint16_t dlen;    //Longitud del campo de datos
-    char data[128];
-} msj_t;
-
 
 typedef struct Get {
     uint16_t opcode;
