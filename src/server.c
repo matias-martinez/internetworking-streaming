@@ -13,7 +13,7 @@
 int main(){
 
     List fuentes = List_create(); 
-    int sd = passiveTCPSocket(4567); //from tcpDataStreaming ->recibir puerto como parametro en ejecucion.
+    int sd = passiveTCPSocket(4567); //from tcpDataStreaming 
     int sdf, lon;
     struct sockaddr_in fuente;
     Header header;

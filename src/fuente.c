@@ -49,9 +49,9 @@ int main(int argc, char *argv[]) {
         id=atoi(paquete_resp->data);
         printf("Mi ID ES %d\n",id );
         printf("Comienzo de Envio de Datos hacia el Servidor\n");
-        // ENVIo POSTS!!
+        // ENVIO POSTS!!
         while (fscanf(fp, "%s", temp) != EOF) {   
-            //TODO: Fix Campo DATA
+            
             sdf = connectTCP();         
             uint32_t tm = time(NULL);
             paquete_post = Mensaje_crear_post(id, tm, temp);
@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) {
     }else{
             printf("Falló Desuscripcion. Saliendo...\n");
     }
+    fclose(fp);
     close(sdf);
 
     return 0;
