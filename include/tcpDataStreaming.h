@@ -26,19 +26,24 @@
 /**
  * Crea un socket descriptor en modo pasivo.
  * 
- * @param int *port* el puerto donde se abre el socket
+ * @param int el puerto donde se abre el socket
+ * @param int tamaño de la lista de conexiones en espera
+ *
  * @return int del socket descriptor
  *         -1 en caso de error
  */
-int passiveTCPSocket(int port);
+int passiveTCPSocket(int port, int qlen);
 
 /**
  * Conecta un socket TCP a otro que esta en listen.
+ *
+ * @parm int port del socket en listen
+ * @param char\* hostname del port en listen
  * 
  * @return int del socket descriptor
  *         -1 en caso de error
  */
-int connectTCP();
+int connectTCP(int, char*);
 
 /**
  * Lee un *total* de n bytes desde el socket *sd*
@@ -71,7 +76,7 @@ int sendall (int sd, char *buf, int len);
  *
  * @return Header del mensaje enviado
  */
-Header Mensaje_recibir_header(int);
+Header *Mensaje_recibir_header(int);
 
 /**
  * Crea un mensaje del tipo Sus.
@@ -88,7 +93,7 @@ Header Mensaje_recibir_header(int);
  *
  * @return un mensaje del tipo Sus.
  */
-Sus Mensaje_crear_sus(int, char *);
+Sus *Mensaje_crear_sus(int, char *);
 
 /**
  * Envia un mensaje del tipo Sus.
@@ -99,7 +104,17 @@ Sus Mensaje_crear_sus(int, char *);
  * @param int cantidad de bytes que se enviaron.
  *
  */
-int Mensaje_enviar_sus(int, Sus);
+int Mensaje_enviar_sus(int, Sus *);
+
+/**
+ * Dado un socket descriptor recibe el un mensaje del tipo Sus enviado por este.
+ * 
+ * @param int socket descriptor
+ * @param int tamaño en bytes del campo de datos
+ *
+ * @return Header del mensaje enviado
+ */
+Sus *Mensaje_recibir_sus(int, int);
 
 /**
  * Crea un mensaje del tipo Resp. 
@@ -126,7 +141,7 @@ int Mensaje_enviar_sus(int, Sus);
  *
  *  @return un mensaje del tipo Resp
  */
-Resp Mensaje_crear_resp(int tipo, int codigo, char data[]);
+Resp *Mensaje_crear_resp(int tipo, int codigo, char data[]);
 
 /**
  * Envia un mensaje del tipo Resp.
@@ -137,7 +152,7 @@ Resp Mensaje_crear_resp(int tipo, int codigo, char data[]);
  * @param int cantidad de bytes que se enviaron.
  *
  */
-int Mensaje_enviar_resp(int, Resp);
+int Mensaje_enviar_resp(int, Resp*);
 
 /**
  * Dado un socket descriptor y el tamaño del campo de datos dlen
@@ -148,7 +163,7 @@ int Mensaje_enviar_resp(int, Resp);
  *
  * @return Resp 
  */
-Resp Mensaje_recibir_resp(int, int);
+Resp *Mensaje_recibir_resp(int, int);
 
 /**
  * Crea un mensaje del tipo Post.
@@ -163,7 +178,7 @@ Resp Mensaje_recibir_resp(int, int);
  *
  *  @return un mensaje del tipo Resp
  */
-Post Mensaje_crear_post(int idFuente, uint32_t timestamp, char data []);
+Post *Mensaje_crear_post(int, uint32_t, char []);
 
 /**
  * Envia un mensaje del tipo Post.
@@ -174,7 +189,7 @@ Post Mensaje_crear_post(int idFuente, uint32_t timestamp, char data []);
  * @param int cantidad de bytes que se enviaron.
  *
  */
-int Mensaje_enviar_post(int sdf, Post msj);
+int Mensaje_enviar_post(int, Post *);
 
 /**
  * Dado un socket descriptor y el tamaño del campo de datos dlen
@@ -186,7 +201,7 @@ int Mensaje_enviar_post(int sdf, Post msj);
  * @return Post
  */
 
-Post Mensaje_recibir_post(int sdf, int dlen);
+Post *Mensaje_recibir_post(int, int);
 
 /**
  * Crea un mensaje del tipo Get.
@@ -206,7 +221,7 @@ Post Mensaje_recibir_post(int sdf, int dlen);
  * @param char \* data se usa unicamente para enviar 2 timestamp en el caso de que
  *      *op* == 1
  */
-Get Mensaje_crear_get(int, int, int, int, char[]);
+Get *Mensaje_crear_get(int, int, int, int, char[]);
 
 
 /**

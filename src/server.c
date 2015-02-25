@@ -5,38 +5,90 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
+#include <string.h>
+#include <unistd.h> // sleep
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "list.h"
 
+pthread_mutex_t mutex_list;
+pthread_cond_t cond_list;
 
-int main(){
+struct pth_param_t {
+    List fuentes;
+    int sdf;
+    struct sockaddr_in fuente;
+};
+
+void * request_handler();
+
+struct pth_param_t Crear_estructura_pthread();
+
+int main(int argc, char *argv[]){
+    int port;
+    int qlen;
+    char *hostname;
+
+    if (argc != 3) {
+        printf("usage: %s [PORT] [QLEN]\n", argv[0]);
+        printf("Example ./server localhost 8888 10\n");
+        exit(1);
+    } else {
+        char *end;
+        port = strtol(argv[1], &end, 10);
+        qlen = strtol(argv[2], &end, 10);
+    }
 
     List fuentes = List_create(); 
-    int sd = passiveTCPSocket(4567); //from tcpDataStreaming 
+    int sd = passiveTCPSocket(port, qlen);
     int sdf, lon;
     struct sockaddr_in fuente;
-    Header header;
-    Sus paquete_sus;
-    Resp paquete_resp;
-    Post paquete_post;
-    char aux[128];
+    pthread_t tid;
     
     
     printf("|||| Servidor DataStreaming - v0.1 ||||\n");
     printf("---------------------------------------\n");
 
     while (1) {
+        pthread_mutex_init(&mutex_list, NULL);
+        pthread_cond_init(&cond_list, NULL);
 
         lon = sizeof(fuente);
         printf("- Aguardando connect -\n");
         sdf = accept(sd, (struct sockaddr *) &fuente, &lon);
         printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
 
+        struct pth_param_t estructura;
+        estructura.fuentes = fuentes;
+        estructura.sdf = sdf;
+        estructura.fuente = fuente;
+
+        pthread_create(&tid, NULL, request_handler, &estructura);
+        printf("Creando thread\n");
+
+        pthread_join(tid, NULL);
+    }
+    
+    return 0;
+}
+
+void * request_handler(struct pth_param_t *pth_struct) {
+        int sdf = pth_struct->sdf;
+        List fuentes = pth_struct->fuentes;
+        struct sockaddr_in fuente = pth_struct->fuente;
+
+        Header *header;
+        Sus *paquete_sus = NULL;
+        Resp *paquete_resp;
+        Post *paquete_post;
+        char aux[128];
+
         header = Mensaje_recibir_header(sdf);
 
         printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
-
+        
+        sleep(10);                  // Simulo tiempo de procesamiento
         switch(header->opcode){
             case 1:
                 paquete_post = Mensaje_recibir_post(sdf, header->dlen);
@@ -67,7 +119,12 @@ int main(){
                         if (fuente_node == NULL) {
                             printf("fallo la alocacion");
                         }
+
+                        pthread_mutex_lock(&mutex_list);     
                         int id = List_push(fuentes, fuente_node);
+                        pthread_cond_signal(&cond_list);
+                        pthread_mutex_unlock(&mutex_list);
+
                         printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
                         sprintf(aux, "%d", id);
                         paquete_resp = Mensaje_crear_resp(0, 11, aux);
@@ -87,7 +144,10 @@ int main(){
                     char *ip = inet_ntoa(fuente.sin_addr);
                     int id;
                     if ((id = List_search_by_ip(fuentes, ip)) != -1) {
+                        pthread_mutex_lock(&mutex_list);
                         List_delete_by_id(fuentes, id);
+                        pthread_cond_signal(&cond_list);
+                        pthread_mutex_unlock(&mutex_list);
                         paquete_resp = Mensaje_crear_resp(0, 11, "");
                         printf("La Fuente con ID %d se DESUSCRIBIO!\n",id );
                     } else {
@@ -99,10 +159,6 @@ int main(){
                 }
                 break;
         }
-
-       
         close(sdf);
-    }
-    close(sd);
-    return 0;
 }
+

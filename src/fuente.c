@@ -9,22 +9,28 @@
 #include "structures.h"
 
 int main(int argc, char *argv[]) {
+    int port;
+    char *servername;
 
-    if (argc != 2)
-    {
-        printf("usage: %s filename\n",argv[0] );
+    if (argc != 4) {
+        printf("usage: %s [FILE] [SERVERNAME] [PORT]\n", argv[0]);
+        printf("Example ./fuente data.bat www.exaple.com 8888\n");
         exit(1);
+    } else {
+        char *end;
+        strcpy(servername, argv[2]);
+        port = strtol(argv[3], &end, 10);
     }
 
-    int sdf = connectTCP();
-    Header header;
-    Sus paquete_sus;
-    Resp paquete_resp;
-    Post paquete_post;
+    int sdf = connectTCP(port, servername);
+    Header *header = NULL;
+    Sus *paquete_sus = NULL;
+    Resp *paquete_resp = NULL;
+    Post *paquete_post = NULL;
     int len, enviados,recibidos,id;
     time_t rawtime;
     struct tm *timestamp;
-    char* temp = malloc(128);//alberga lineas leidas del archivo
+    char* temp = malloc(128);   //alberga lineas leidas del archivo
 
     FILE *fp;
     fp = fopen(argv[1],"rw");
@@ -52,7 +58,7 @@ int main(int argc, char *argv[]) {
         // ENVIO POSTS!!
         while (fscanf(fp, "%s", temp) != EOF) {   
             
-            sdf = connectTCP();         
+            sdf = connectTCP(port, servername);         
             uint32_t tm = time(NULL);
             paquete_post = Mensaje_crear_post(id, tm, temp);
             printf("Campo DATA enviado: %s, timestamp: %d\n", paquete_post->data, paquete_post->timestamp);
@@ -70,7 +76,7 @@ int main(int argc, char *argv[]) {
             printf("Recibi un Codigo de Error. Saliendo...\n");
             exit(1);
     }
-    sdf = connectTCP(); 
+    sdf = connectTCP(port, servername); 
     temp = realloc(temp, 4);
     sprintf(temp, "%d", id);
     paquete_sus = Mensaje_crear_sus(2,temp);
