@@ -17,7 +17,7 @@ pthread_cond_t cond_list;
 
 struct pth_param_t {
     List fuentes;
-    int sdf;
+    int *sdf;
     struct sockaddr_in fuente;
 };
 
@@ -41,7 +41,6 @@ int main(int argc, char *argv[]){
     int sd = passiveTCPSocket(host, port, qlen);
     int sdf, lon;
     struct sockaddr_in fuente;
-    pthread_t tid;
     
     
     printf("|||| Servidor DataStreaming - v0.1 ||||\n");
@@ -49,21 +48,21 @@ int main(int argc, char *argv[]){
 
     pthread_mutex_init(&mutex_list, NULL);
     pthread_cond_init(&cond_list, NULL);
-
-    while (1) {
-
-        lon = sizeof(fuente);
-        printf("- Aguardando connect -\n");
-        sdf = accept(sd, (struct sockaddr *) &fuente, &lon);
-        printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
     
+
+    lon = sizeof(struct sockaddr_in);
+    printf("- Aguardando connect -\n");
+    while (sdf = accept(sd, (struct sockaddr *) &fuente, &lon)) {
+        printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
+         
+        pthread_t tid;
+
         struct pth_param_t estructura;
         estructura.fuentes = fuentes;
-        estructura.sdf = sdf;
+        estructura.sdf = &sdf;
         estructura.fuente = fuente;
 
         pthread_create(&tid, NULL, request_handler, &estructura);
-        pthread_join(tid, NULL);
     }
     
     return 0;
@@ -72,7 +71,7 @@ int main(int argc, char *argv[]){
 }
 
 void * request_handler(struct pth_param_t *pth_struct) {
-        int sdf = pth_struct->sdf;
+        int sdf = *(pth_struct->sdf);
         pth_struct->fuentes;
         struct sockaddr_in fuente = pth_struct->fuente;
 
@@ -88,12 +87,11 @@ void * request_handler(struct pth_param_t *pth_struct) {
 
             printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
         
-            //sleep(2);                  // Simulo tiempo de procesamiento
+            sleep(1);                  // Simulo tiempo de procesamiento
             switch(header->opcode){
                 case 0:
                     close(sdf);
                     sdf_open = 0;
-                    pthread_exit(NULL);
                     break;
                 case 1:
                     paquete_post = Mensaje_recibir_post(sdf, header->dlen);

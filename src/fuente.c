@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
     sprintf(temp, "%d", id);
     paquete_sus = Mensaje_crear_sus(2, temp);
     Mensaje_enviar_sus(sdf, paquete_sus);
+
     header = Mensaje_recibir_header(sdf);
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
 

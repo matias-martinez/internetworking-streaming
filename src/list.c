@@ -82,8 +82,10 @@ int List_search_by_ip(List list, char * ip) {
     
     unsigned int i;
     for (i = 0; i < list->count; i++) {
-        if (strcmp(list->elements[0]->ip, ip) == 0) {
-            return i;
+        if (list->elements[i] != NULL) {
+            if (strcmp(list->elements[i]->ip, ip) == 0) {
+                return i;
+            }
         }
     }
 
@@ -135,7 +137,6 @@ char * List_to_csv(List list) {
 }
 
 void List_delete_by_id(List list, int id) {
-    list->count--;
     list->elements[id] = NULL;
 }
 
