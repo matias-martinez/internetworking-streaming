@@ -10,6 +10,7 @@ struct ListNode {
     char *type;
     char *description;
     char *ip;
+    char *port;
 };
 
 struct List {
@@ -29,13 +30,14 @@ List List_create() {
     return l;
 }
 
-ListNode ListNode_create(char *type, char *description, char *ip) {
+ListNode ListNode_create(char *type, char *description, char *ip, char *port) {
     ListNode ln = malloc(sizeof(struct ListNode));
     if (ln == NULL) { return NULL; }
     ln->id = NULL;
     ln->type = type;
     ln->description = description;
     ln->ip = ip;
+    ln->port = port ;
 
     return ln;
 }
@@ -77,13 +79,13 @@ int List_push(List list, ListNode node) {
     return id;
 }
 
-int List_search_by_ip(List list, char * ip) {
+int List_search_by_ip_port(List list, char * ip, char * port) {
     if (list == NULL) return -1;
     
     unsigned int i;
     for (i = 0; i < list->count; i++) {
         if (list->elements[i] != NULL) {
-            if (strcmp(list->elements[i]->ip, ip) == 0) {
+            if (strcmp(list->elements[i]->ip, ip) == 0 && strcmp(list->elements[i]->port, port)==0) {
                 return i;
             }
         }
@@ -102,7 +104,7 @@ int List_search_by_id(List list, int id) {
 char * List_to_csv(List list) {
     int i;
     char *csv = malloc(150);
-    strcat(csv, "id,type,description,ip;");
+    strcat(csv, "id,type,description,ip,port;");
     
     for (i = 0; i < list->count; i++) {
         if (list->elements[i] != NULL) {
@@ -111,8 +113,9 @@ char * List_to_csv(List list) {
             char *type = (char *) list->elements[i]->type;
             char *ip = list->elements[i]->ip;
             char *description = list->elements[i]->description;
+            char *port = list->elements[i]->port;
             
-            int len_of_current_node = strlen(id) + strlen(type) + strlen(ip) + strlen(description) + 4; // 4 = separadores
+            int len_of_current_node = strlen(id) + strlen(type) + strlen(ip) + strlen(description) + strlen(port)+ 4; // 4 = separadores
             int len_of_csv = strlen(csv);
                     
             void *new_csv = realloc(csv, len_of_current_node + len_of_csv + 1);
@@ -129,6 +132,8 @@ char * List_to_csv(List list) {
             strcat(csv, description);
             strcat(csv, ",");
             strcat(csv, ip);
+            strcat(csv, ",");
+            strcat(csv, port);
             strcat(csv, ";");
         }
     }

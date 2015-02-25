@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
     lon = sizeof(struct sockaddr_in);
     printf("- Aguardando connect -\n");
     while (sdf = accept(sd, (struct sockaddr *) &fuente, &lon)) {
-        printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
+        printf("Recibí connect desde: %s port %d\n", inet_ntoa(fuente.sin_addr), fuente.sin_port);
          
         pthread_t tid;
 
@@ -115,13 +115,16 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     
                     if (paquete_sus->op == 0){
                         char *ip = inet_ntoa(fuente.sin_addr);
+                        char *portF=malloc(6); sprintf(portF, "%d", fuente.sin_port);
+                        printf("%s!!!!!!!!!!!!!!!!\n",portF );
                         char **datos = wrapstrsep(paquete_sus->data, ";");
-                        if (List_search_by_ip(pth_struct->fuentes, ip) == -1) {
-                            ListNode fuente_node = ListNode_create(datos[0], datos[1], ip);
+                        
+                        if (List_search_by_ip_port(pth_struct->fuentes, ip, portF) == -1) {
+                            ListNode fuente_node = ListNode_create(datos[0], datos[1], ip, portF);
                             if (fuente_node == NULL) {
                                 printf("fallo la alocacion");
                             }
-
+                           
                             pthread_mutex_lock(&mutex_list);     
                             int id = List_push(pth_struct->fuentes, fuente_node);
                             pthread_cond_signal(&cond_list);
@@ -143,8 +146,9 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     }
                     if (paquete_sus->op == 2){
                         char *ip = inet_ntoa(fuente.sin_addr);
+                        char *portF=malloc(6) ; sprintf(portF, "%d", fuente.sin_port);
                         int id;
-                        if ((id = List_search_by_ip(pth_struct->fuentes, ip)) != -1) {
+                        if ((id = List_search_by_ip_port(pth_struct->fuentes, ip, portF)) != -1) {
                             pthread_mutex_lock(&mutex_list);
                             List_delete_by_id(pth_struct->fuentes, id);
                             pthread_cond_signal(&cond_list);
