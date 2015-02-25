@@ -50,110 +50,120 @@ int main(int argc, char *argv[]){
     pthread_mutex_init(&mutex_list, NULL);
     pthread_cond_init(&cond_list, NULL);
 
-    struct pth_param_t estructura;
-    estructura.fuentes = fuentes;
-    estructura.sdf = sdf;
-    estructura.fuente = fuente;
-
     while (1) {
 
         lon = sizeof(fuente);
         printf("- Aguardando connect -\n");
         sdf = accept(sd, (struct sockaddr *) &fuente, &lon);
         printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
+    
+        struct pth_param_t estructura;
+        estructura.fuentes = fuentes;
+        estructura.sdf = sdf;
+        estructura.fuente = fuente;
 
         pthread_create(&tid, NULL, request_handler, &estructura);
+        pthread_join(tid, NULL);
     }
     
     return 0;
+
+    close(sd);
 }
 
 void * request_handler(struct pth_param_t *pth_struct) {
         int sdf = pth_struct->sdf;
-        List fuentes = pth_struct->fuentes;
+        pth_struct->fuentes;
         struct sockaddr_in fuente = pth_struct->fuente;
 
-        Header *header;
-        Sus *paquete_sus = NULL;
-        Resp *paquete_resp;
-        Post *paquete_post;
-        char aux[128];
+        int sdf_open = 1;
+        Header *header = NULL;
 
-        header = Mensaje_recibir_header(sdf);
+        while (sdf_open == 1) {
+            header = Mensaje_recibir_header(sdf);
+            Sus *paquete_sus = NULL;
+            Resp *paquete_resp = NULL;
+            Post *paquete_post = NULL;
+            char aux[128];
 
-        printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
+            printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
         
-        sleep(2);                  // Simulo tiempo de procesamiento
-        switch(header->opcode){
-            case 1:
-                paquete_post = Mensaje_recibir_post(sdf, header->dlen);
-                printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
-                printf("Recibi estos datos: %s\t", paquete_post->data);
-                printf("Con este timestamp: %d\n", paquete_post->timestamp);
-                
-                if (List_search_by_id(fuentes, paquete_post->idFuente) != -1) {
-                    // TODO Agregar datos al buffer de la fuente
-                    paquete_resp = Mensaje_crear_resp(0, 13, "");
+            //sleep(2);                  // Simulo tiempo de procesamiento
+            switch(header->opcode){
+                case 0:
+                    close(sdf);
+                    sdf_open = 0;
+                    pthread_exit(NULL);
+                    break;
+                case 1:
+                    paquete_post = Mensaje_recibir_post(sdf, header->dlen);
+                    printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
+                    printf("Recibi estos datos: %s\t", paquete_post->data);
+                    printf("Con este timestamp: %d\n", paquete_post->timestamp);
+                    
+                    if (List_search_by_id(pth_struct->fuentes, paquete_post->idFuente) != -1) {
+                        // TODO Agregar datos al buffer de la fuente
+                        paquete_resp = Mensaje_crear_resp(0, 13, "");
+                    } else {
+                        paquete_resp = Mensaje_crear_resp(1, 22, "");
+                    }
                     Mensaje_enviar_resp(sdf, paquete_resp);
-                } else {
-                    paquete_resp = Mensaje_crear_resp(1, 22, "");
-                    Mensaje_enviar_resp(sdf, paquete_resp);
-                }
-                printf("---------------------------------------\n");
-                break;
-            case 2:
-                paquete_sus = Mensaje_recibir_sus(sdf, header->dlen);
-                printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
-                printf("Recibi estos datos: %s\n", paquete_sus->data);
-                
-                if (paquete_sus->op == 0){
-                    char *ip = inet_ntoa(fuente.sin_addr);
-                    char **datos = wrapstrsep(paquete_sus->data, ";");
-                    if (List_search_by_ip(fuentes, ip) == -1) {
-                        ListNode fuente_node = ListNode_create(datos[0], datos[1], ip);
-                        if (fuente_node == NULL) {
-                            printf("fallo la alocacion");
+                    printf("---------------------------------------\n");
+                    break;
+                case 2:
+                    paquete_sus = Mensaje_recibir_sus(sdf, header->dlen);
+                    printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
+                    printf("Recibi estos datos: %s\n", paquete_sus->data);
+                    
+                    if (paquete_sus->op == 0){
+                        char *ip = inet_ntoa(fuente.sin_addr);
+                        char **datos = wrapstrsep(paquete_sus->data, ";");
+                        if (List_search_by_ip(pth_struct->fuentes, ip) == -1) {
+                            ListNode fuente_node = ListNode_create(datos[0], datos[1], ip);
+                            if (fuente_node == NULL) {
+                                printf("fallo la alocacion");
+                            }
+
+                            pthread_mutex_lock(&mutex_list);     
+                            int id = List_push(pth_struct->fuentes, fuente_node);
+                            pthread_cond_signal(&cond_list);
+                            pthread_mutex_unlock(&mutex_list);
+
+                            printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
+                            sprintf(aux, "%d", id);
+                            paquete_resp = Mensaje_crear_resp(0, 11, aux);
+                        }
+                        else {
+                            paquete_resp = Mensaje_crear_resp(1, 21, "");         //Tipo=1;Codigo=21;Data=NULL
                         }
 
-                        pthread_mutex_lock(&mutex_list);     
-                        int id = List_push(fuentes, fuente_node);
-                        pthread_cond_signal(&cond_list);
-                        pthread_mutex_unlock(&mutex_list);
-
-                        printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
-                        sprintf(aux, "%d", id);
-                        paquete_resp = Mensaje_crear_resp(0, 11, aux);
-                        Mensaje_enviar_resp(sdf, paquete_resp);             //tipo=0;Codigo=11;data=IDFUENTE   
-
-                    }
-                    else {
-                        paquete_resp = Mensaje_crear_resp(1, 21, "");         //Tipo=1;Codigo=21;Data=NULL
-                        Mensaje_enviar_resp(sdf,paquete_resp);
-                    }
-                    printf("---------------------------------------\n");
-                }
-                if (paquete_sus->op == 1){
-                    //TODO: Solicitud de Sucripcion de Consumidor. Proxima Version.
-                }
-                if (paquete_sus->op == 2){
-                    char *ip = inet_ntoa(fuente.sin_addr);
-                    int id;
-                    if ((id = List_search_by_ip(fuentes, ip)) != -1) {
-                        pthread_mutex_lock(&mutex_list);
-                        List_delete_by_id(fuentes, id);
-                        pthread_cond_signal(&cond_list);
-                        pthread_mutex_unlock(&mutex_list);
-                        paquete_resp = Mensaje_crear_resp(0, 11, "");
-                        printf("La Fuente con ID %d se DESUSCRIBIO!\n",id );
-                    } else {
-                        paquete_resp = Mensaje_crear_resp(1, 21, "");
-                        printf("Mensaje de desuscripcion con Id inexistente..\n",id );
+                        Mensaje_enviar_resp(sdf, paquete_resp);            
                         printf("---------------------------------------\n");
                     }
-                    printf("---------------------------------------\n");
-                }
-                break;
+                    if (paquete_sus->op == 1){
+                        //TODO: Solicitud de Sucripcion de Consumidor. Proxima Version.
+                    }
+                    if (paquete_sus->op == 2){
+                        char *ip = inet_ntoa(fuente.sin_addr);
+                        int id;
+                        if ((id = List_search_by_ip(pth_struct->fuentes, ip)) != -1) {
+                            pthread_mutex_lock(&mutex_list);
+                            List_delete_by_id(pth_struct->fuentes, id);
+                            pthread_cond_signal(&cond_list);
+                            pthread_mutex_unlock(&mutex_list);
+                            paquete_resp = Mensaje_crear_resp(0, 11, "");
+                            printf("La Fuente con ID %d se DESUSCRIBIO!\n", id);
+                        } else {
+                            paquete_resp = Mensaje_crear_resp(1, 21, "");
+                            printf("Mensaje de desuscripcion con Id inexistente..\n",id );
+                            printf("---------------------------------------\n");
+                        }
+
+                            Mensaje_enviar_resp(sdf, paquete_resp);
+                        printf("---------------------------------------\n");
+                    }
+                    break;
+            }
         }
-        close(sdf);
 }
 

@@ -70,8 +70,9 @@ int List_push(List list, ListNode node) {
     } else {
         id = blank_space;
     }
-    
-    list->elements[id] = node;
+   
+    list->elements[id] = (ListNode) malloc(sizeof(struct ListNode));
+    memcpy(list->elements[id], node, sizeof(struct ListNode));
     
     return id;
 }
@@ -134,6 +135,7 @@ char * List_to_csv(List list) {
 }
 
 void List_delete_by_id(List list, int id) {
+    list->count--;
     list->elements[id] = NULL;
 }
 

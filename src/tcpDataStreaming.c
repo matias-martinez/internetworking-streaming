@@ -163,7 +163,7 @@ Resp *Mensaje_crear_resp(int tipo, int codigo, char data[]){
     msj = (Resp *) malloc(sizeof(Resp));
 
     msj->opcode = (uint16_t) RESP;
-    msj->dlen = (uint16_t) 0;
+    msj->dlen = (uint16_t) strlen(data);
     msj->tipo = (uint16_t) tipo;
     msj->codigo = (uint16_t) codigo;
     strcpy(msj->data, data);
@@ -198,7 +198,7 @@ Resp *Mensaje_recibir_resp(int sdf, int dlen){
     msj = malloc(sizeof(Resp));
     payload = (Payload *) malloc(132);
 
-    recibidos = receiveall(sdf, paquete, 6 + dlen);
+    recibidos = receiveall(sdf, paquete, 4 + dlen);
     payload = (Payload *) paquete;
 
     msj->tipo = ntohs(payload->tipo);
