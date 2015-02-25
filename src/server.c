@@ -26,22 +26,19 @@ void * request_handler();
 struct pth_param_t Crear_estructura_pthread();
 
 int main(int argc, char *argv[]){
-    int port;
-    int qlen;
-    char *hostname;
-
-    if (argc != 3) {
-        printf("usage: %s [PORT] [QLEN]\n", argv[0]);
-        printf("Example ./server localhost 8888 10\n");
+    if (argc != 4) {
+        printf("usage: %s [HOST] [PORT] [QLEN]\n", argv[0]);
+        printf("Example ./server 127.0.0.1 8888 10\n");
         exit(1);
-    } else {
-        char *end;
-        port = strtol(argv[1], &end, 10);
-        qlen = strtol(argv[2], &end, 10);
     }
+    
+    char *end;
+    char *host = argv[1];
+    int port = strtol(argv[2], &end, 10);
+    int qlen = strtol(argv[3], &end, 10);
 
     List fuentes = List_create(); 
-    int sd = passiveTCPSocket(port, qlen);
+    int sd = passiveTCPSocket(host, port, qlen);
     int sdf, lon;
     struct sockaddr_in fuente;
     pthread_t tid;
@@ -50,24 +47,22 @@ int main(int argc, char *argv[]){
     printf("|||| Servidor DataStreaming - v0.1 ||||\n");
     printf("---------------------------------------\n");
 
+    pthread_mutex_init(&mutex_list, NULL);
+    pthread_cond_init(&cond_list, NULL);
+
+    struct pth_param_t estructura;
+    estructura.fuentes = fuentes;
+    estructura.sdf = sdf;
+    estructura.fuente = fuente;
+
     while (1) {
-        pthread_mutex_init(&mutex_list, NULL);
-        pthread_cond_init(&cond_list, NULL);
 
         lon = sizeof(fuente);
         printf("- Aguardando connect -\n");
         sdf = accept(sd, (struct sockaddr *) &fuente, &lon);
         printf("Recibí connect desde: %s \n", inet_ntoa(fuente.sin_addr));
 
-        struct pth_param_t estructura;
-        estructura.fuentes = fuentes;
-        estructura.sdf = sdf;
-        estructura.fuente = fuente;
-
         pthread_create(&tid, NULL, request_handler, &estructura);
-        printf("Creando thread\n");
-
-        pthread_join(tid, NULL);
     }
     
     return 0;
@@ -88,7 +83,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
 
         printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
         
-        sleep(10);                  // Simulo tiempo de procesamiento
+        sleep(2);                  // Simulo tiempo de procesamiento
         switch(header->opcode){
             case 1:
                 paquete_post = Mensaje_recibir_post(sdf, header->dlen);

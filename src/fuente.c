@@ -9,20 +9,18 @@
 #include "structures.h"
 
 int main(int argc, char *argv[]) {
-    int port;
-    char *servername;
 
     if (argc != 4) {
         printf("usage: %s [FILE] [SERVERNAME] [PORT]\n", argv[0]);
         printf("Example ./fuente data.bat www.exaple.com 8888\n");
         exit(1);
-    } else {
-        char *end;
-        strcpy(servername, argv[2]);
-        port = strtol(argv[3], &end, 10);
     }
+    
+    char *end;
+    char *host = argv[2];
+    int port = strtol(argv[3], &end, 10);
 
-    int sdf = connectTCP(port, servername);
+    int sdf = connectTCP(host, port);
     Header *header = NULL;
     Sus *paquete_sus = NULL;
     Resp *paquete_resp = NULL;
@@ -50,15 +48,15 @@ int main(int argc, char *argv[]) {
     paquete_resp = Mensaje_recibir_resp(sdf,header->dlen);
     printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
     close(sdf);
-    if(paquete_resp->tipo==0 && paquete_resp->codigo==11){
+    if(paquete_resp->tipo == 0 && paquete_resp->codigo == 11){
        
         id=atoi(paquete_resp->data);
-        printf("Mi ID ES %d\n",id );
+        printf("Mi ID ES %d\n", id );
         printf("Comienzo de Envio de Datos hacia el Servidor\n");
         // ENVIO POSTS!!
         while (fscanf(fp, "%s", temp) != EOF) {   
             
-            sdf = connectTCP(port, servername);         
+            sdf = connectTCP(host, port);         
             uint32_t tm = time(NULL);
             paquete_post = Mensaje_crear_post(id, tm, temp);
             printf("Campo DATA enviado: %s, timestamp: %d\n", paquete_post->data, paquete_post->timestamp);
@@ -72,25 +70,27 @@ int main(int argc, char *argv[]) {
             close(sdf);
             temp = realloc(temp, 128);
             }
-        }else{
+    } else {
             printf("Recibi un Codigo de Error. Saliendo...\n");
             exit(1);
     }
-    sdf = connectTCP(port, servername); 
+
+    sdf = connectTCP(host, port); 
     temp = realloc(temp, 4);
     sprintf(temp, "%d", id);
-    paquete_sus = Mensaje_crear_sus(2,temp);
-    Mensaje_enviar_sus(sdf,paquete_sus);
+    paquete_sus = Mensaje_crear_sus(2, temp);
+    Mensaje_enviar_sus(sdf, paquete_sus);
     header = Mensaje_recibir_header(sdf);
-    paquete_resp = Mensaje_recibir_resp(sdf,header->dlen);
-    if(paquete_resp->tipo==0 ){
-            printf("Fuente Desconectada! Saliendo...\n");
-    }else{
-            printf("Falló Desuscripcion. Saliendo...\n");
+    paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
+
+    if (paquete_resp->tipo == 0) {
+        printf("Fuente Desconectada! Saliendo...\n");
+    } else {
+        printf("Falló Desuscripcion. Saliendo...\n");
     }
+
     fclose(fp);
     close(sdf);
 
     return 0;
-
 }

@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <sys/wait.h>
 #include <sys/signal.h>
 #include <unistd.h>
@@ -12,26 +13,7 @@
 #include "tcpDataStreaming.h"
 #include "structures.h"
 
-//Paquetes
-#define GET 0
-#define POST 1
-#define SUS 2
-#define RESP 3
-
-//Longitud Header y Carga no util de cada tipo de paquete
-#define LONG_HEADER 3
-#define LONG_GET 5
-#define LONG_POST 6
-#define LONG_SUS 1
-#define LONG_RESP 3
-
-//Encodings Soportados
-// TODO: arreglar esto, hacer un enum con mime
-#define BINARY 0
-#define TEXT 1
-
-
-int passiveTCPSocket(int port, int qlen){
+int passiveTCPSocket(char *host, int port, int qlen){
 
     int sd;
     struct sockaddr_in servidor;
@@ -39,7 +21,7 @@ int passiveTCPSocket(int port, int qlen){
     memset(&servidor, 0, sizeof(servidor));
     servidor.sin_family = AF_INET;
     servidor.sin_port = htons(port);
-    servidor.sin_addr.s_addr = INADDR_ANY;
+    servidor.sin_addr.s_addr = inet_addr(host);
 
     sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -54,17 +36,21 @@ int passiveTCPSocket(int port, int qlen){
     return sd;
 }
 
-int connectTCP(int port, char *hostname){
+int connectTCP(char *host, int port){
 
     int sdc;
     int r;
     struct sockaddr_in servidor;
+    struct hostent *hp, *gethostbyname();
 
     sdc = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     memset(&servidor, 0, sizeof(servidor));
     servidor.sin_family = AF_INET;
     servidor.sin_port = htons(port);
-    servidor.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    hp = gethostbyname(host);
+    memcpy(&servidor.sin_addr, hp->h_addr, hp->h_length);
+    
     if ( connect ( sdc, (struct sockaddr *) &servidor, sizeof(servidor)) < 0){
         perror("Error en connect al socket servidor");
         exit(-1);

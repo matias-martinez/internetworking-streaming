@@ -26,24 +26,25 @@
 /**
  * Crea un socket descriptor en modo pasivo.
  * 
+ * @param char\* host
  * @param int el puerto donde se abre el socket
  * @param int tamaño de la lista de conexiones en espera
  *
  * @return int del socket descriptor
  *         -1 en caso de error
  */
-int passiveTCPSocket(int port, int qlen);
+int passiveTCPSocket(char *, int, int);
 
 /**
  * Conecta un socket TCP a otro que esta en listen.
  *
- * @parm int port del socket en listen
  * @param char\* hostname del port en listen
+ * @parm int port del socket en listen
  * 
  * @return int del socket descriptor
  *         -1 en caso de error
  */
-int connectTCP(int, char*);
+int connectTCP(char *, int);
 
 /**
  * Lee un *total* de n bytes desde el socket *sd*
