@@ -11,11 +11,11 @@
 #define RESP 3
 
 //Longitud Header y Carga no util de cada tipo de paquete
-#define LONG_HEADER 3
-#define LONG_GET 5
-#define LONG_POST 6
-#define LONG_SUS 1
-#define LONG_RESP 3
+#define LONG_HEADER 4
+#define LONG_GET 6
+#define LONG_POST 8
+#define LONG_SUS 2
+#define LONG_RESP 4
 
 //Encodings Soportados
 // TODO: arreglar esto, hacer un enum con mime

@@ -33,6 +33,7 @@ int passiveTCPSocket(char *host, int port, int qlen){
         perror("Fallo listen en el puerto \n");
         exit(-1);
     }
+
     return sd;
 }
 
@@ -98,7 +99,7 @@ Header *Mensaje_recibir_header(int sdf) {
     int recibidos;
 
     paquete = malloc(sizeof(Header));
-    recibidos = receiveall(sdf, paquete, 4);
+    recibidos = receiveall(sdf, paquete, LONG_HEADER);
     msj = (Header *) paquete;
 
     msj->opcode = ntohs(msj->opcode);
@@ -121,16 +122,13 @@ Sus *Mensaje_crear_sus(int op, char data[]) {
 }
 
 int Mensaje_enviar_sus(int sdf, Sus *msj) {
-    int byte_send = msj->dlen + 6;
+    int byte_send = msj->dlen + LONG_SUS + LONG_HEADER;
 
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
-
     msj->op = htons(msj->op);
 
-
     return send(sdf, msj, byte_send , 0);
-
 }
 
 Sus *Mensaje_recibir_sus(int sdf, int dlen) {
@@ -146,9 +144,9 @@ Sus *Mensaje_recibir_sus(int sdf, int dlen) {
 
     paquete = malloc(sizeof(Sus));
     msj = malloc(sizeof(Sus));
-    payload = (Payload *) malloc(130);
+    payload = (Payload *) malloc(LONG_SUS + dlen);
 
-    recibidos = receiveall(sdf, paquete, 2 + dlen);
+    recibidos = receiveall(sdf, paquete, LONG_SUS + dlen);
     payload = (Payload *) paquete;
 
     msj->op = ntohs(payload->op);
@@ -172,7 +170,7 @@ Resp *Mensaje_crear_resp(int tipo, int codigo, char data[]){
 }
 
 int Mensaje_enviar_resp(int sdf, Resp *msj){
-    int byte_send = msj->dlen + 8;
+    int byte_send = LONG_HEADER + LONG_RESP + msj->dlen;
 
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
@@ -196,14 +194,15 @@ Resp *Mensaje_recibir_resp(int sdf, int dlen){
 
     paquete = malloc(sizeof(Resp));
     msj = malloc(sizeof(Resp));
-    payload = (Payload *) malloc(132);
+    payload = (Payload *) malloc(LONG_RESP + dlen);
 
-    recibidos = receiveall(sdf, paquete, 4 + dlen);
+    recibidos = receiveall(sdf, paquete, LONG_RESP + dlen);
     payload = (Payload *) paquete;
 
     msj->tipo = ntohs(payload->tipo);
     msj->codigo = ntohs(payload->codigo);
     strcpy(msj->data, payload->data);
+
 
     return msj;
 }
@@ -222,7 +221,7 @@ Post *Mensaje_crear_post(int idFuente, uint32_t timestamp, char data []){
 }
 
 int Mensaje_enviar_post(int sdf, Post *msj){
-    int byte_send = msj->dlen + 12; //+size of 3*uint16_t+size of time_t
+    int byte_send = LONG_HEADER + LONG_POST + msj->dlen;
 
     msj->opcode = htons(msj->opcode);
     msj->dlen = htons(msj->dlen);
@@ -247,9 +246,9 @@ Post *Mensaje_recibir_post(int sdf, int dlen){
 
     paquete = malloc(sizeof(Post));
     msj = (Post *) malloc(sizeof(Post));
-    payload = (Payload *) malloc(8 + dlen);
+    payload = (Payload *) malloc(LONG_POST + dlen);
 
-    recibidos = receiveall(sdf, paquete, 8 + dlen);
+    recibidos = receiveall(sdf, paquete, LONG_POST + dlen);
     payload = (Payload *) paquete;
 
     msj->idFuente = ntohs(payload->idFuente);

@@ -87,7 +87,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
 
             printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
         
-            sleep(1);                  // Simulo tiempo de procesamiento
+//            sleep(1);                  // Simulo tiempo de procesamiento
             switch(header->opcode){
                 case 0:
                     close(sdf);
@@ -98,7 +98,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
                     printf("Recibi estos datos: %s\t", paquete_post->data);
                     printf("Con este timestamp: %d\n", paquete_post->timestamp);
-                    
+                   
                     if (List_search_by_id(pth_struct->fuentes, paquete_post->idFuente) != -1) {
                         // TODO Agregar datos al buffer de la fuente
                         paquete_resp = Mensaje_crear_resp(0, 13, "");
@@ -113,10 +113,11 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
                     printf("Recibi estos datos: %s\n", paquete_sus->data);
                     
+                    char *ip = inet_ntoa(fuente.sin_addr);
+                    char *portF = malloc(6);
+                    sprintf(portF, "%d", fuente.sin_port);
+                   
                     if (paquete_sus->op == 0){
-                        char *ip = inet_ntoa(fuente.sin_addr);
-                        char *portF=malloc(6); sprintf(portF, "%d", fuente.sin_port);
-                        printf("%s!!!!!!!!!!!!!!!!\n",portF );
                         char **datos = wrapstrsep(paquete_sus->data, ";");
                         
                         if (List_search_by_ip_port(pth_struct->fuentes, ip, portF) == -1) {
@@ -145,8 +146,6 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         //TODO: Solicitud de Sucripcion de Consumidor. Proxima Version.
                     }
                     if (paquete_sus->op == 2){
-                        char *ip = inet_ntoa(fuente.sin_addr);
-                        char *portF=malloc(6) ; sprintf(portF, "%d", fuente.sin_port);
                         int id;
                         if ((id = List_search_by_ip_port(pth_struct->fuentes, ip, portF)) != -1) {
                             pthread_mutex_lock(&mutex_list);
@@ -161,7 +160,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                             printf("---------------------------------------\n");
                         }
 
-                            Mensaje_enviar_resp(sdf, paquete_resp);
+                        Mensaje_enviar_resp(sdf, paquete_resp);
                         printf("---------------------------------------\n");
                     }
                     break;
