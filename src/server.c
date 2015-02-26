@@ -98,9 +98,13 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
                     printf("Recibi estos datos: %s\t", paquete_post->data);
                     printf("Con este timestamp: %d\n", paquete_post->timestamp);
-                   
+                    
                     if (List_search_by_id(pth_struct->fuentes, paquete_post->idFuente) != -1) {
+                       
                         // TODO Agregar datos al buffer de la fuente
+                        List_add_data_to_node_buffer(pth_struct->fuentes, paquete_post->idFuente,
+                                paquete_post->timestamp, paquete_post->data);
+
                         paquete_resp = Mensaje_crear_resp(0, 13, "");
                     } else {
                         paquete_resp = Mensaje_crear_resp(1, 22, "");

@@ -5,12 +5,19 @@
 
 #define INCREMENT 10
 
+struct Buffer {
+    long int tm;
+    char *data;
+};
+
 struct ListNode {
     char *id;
     char *type;
     char *description;
     char *ip;
     char *port;
+    int cant_data;
+    struct Buffer **buffer;
 };
 
 struct List {
@@ -37,7 +44,9 @@ ListNode ListNode_create(char *type, char *description, char *ip, char *port) {
     ln->type = type;
     ln->description = description;
     ln->ip = ip;
-    ln->port = port ;
+    ln->port = port;
+    ln->buffer = (struct Buffer **) malloc(sizeof(struct Buffer));
+    ln->cant_data = 0;
 
     return ln;
 }
@@ -145,3 +154,19 @@ void List_delete_by_id(List list, int id) {
     list->elements[id] = NULL;
 }
 
+int List_add_data_to_node_buffer(List list, int id, long int tm, char *data) {
+    if (List_search_by_id(list, id) != -1) {
+        struct ListNode *node = list->elements[id];
+        int size = node->cant_data;
+        
+        node->buffer = (struct Buffer **) realloc(node->buffer, sizeof(struct Buffer) * (size + 1));
+        node->buffer[size] = (struct Buffer *) malloc(sizeof(struct Buffer));
+        node->buffer[size]->tm = tm;
+        node->buffer[size]->data = (char *) malloc(strlen(data));
+        strcpy(node->buffer[size]->data, data);
+        node->cant_data++;
+    
+        return 1;
+    }
+    return -1;
+}

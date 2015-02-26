@@ -50,4 +50,18 @@ char * List_to_csv(List);
  */
 void List_delete_by_id(List, int);
 
+/**
+ * Añade datos al buffer de un nodo de la lista
+ *
+ * @param List donde se encuentra el nodo
+ * @param int id del nodo
+ * @param long int timestamp en segundos
+ * @param char datos
+ *
+ * @return 1 si puede guardar los datos
+ *        -1 si no puede guardar los datos
+ */
+
+int List_add_data_to_node_buffer(List, int, long int, char *);
+
 #endif
