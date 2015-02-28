@@ -45,7 +45,7 @@ int main(int argc, char *argv[]){
     
     printf("|||| Servidor DataStreaming - v0.1 ||||\n");
     printf("---------------------------------------\n");
-
+    
     pthread_mutex_init(&mutex_list, NULL);
     pthread_cond_init(&cond_list, NULL);
     

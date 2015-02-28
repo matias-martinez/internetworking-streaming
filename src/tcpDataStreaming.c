@@ -183,7 +183,7 @@ int Mensaje_enviar_resp(int sdf, Resp *msj){
 }
 
 Resp *Mensaje_recibir_resp(int sdf, int dlen){
-     typedef struct {
+    typedef struct {
         uint16_t tipo;
         uint16_t codigo;
         char data[dlen];
@@ -234,12 +234,14 @@ int Mensaje_enviar_post(int sdf, Post *msj){
     return sendall(sdf, (char *) msj, byte_send);
 }
 
-Post *Mensaje_recibir_post(int sdf, int dlen){
+Post *Mensaje_recibir_post(int sdf, size_t dlen){
+    #pragma pack(1)
     typedef struct {
         uint16_t idFuente;
         uint32_t timestamp;
-        char data[dlen];
+        char data[dlen + 1];
     } Payload;
+    #pragma pack()
 
     Payload *payload;
     char *paquete;
@@ -256,7 +258,8 @@ Post *Mensaje_recibir_post(int sdf, int dlen){
     msj->idFuente = ntohs(payload->idFuente);
     msj->timestamp = ntohl(payload->timestamp);
     strncpy(msj->data, payload->data, dlen);
-
+    msj->data[dlen] = '\0';
+    
     free(payload);
     return msj;
 

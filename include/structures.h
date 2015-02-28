@@ -1,6 +1,7 @@
 #ifndef _STRUCTURES_H
 #define _STRUCTURES_H
 
+#pragma pack(push, 1)
 /**
  * Header comun a todos los mensajes.
  */
@@ -57,4 +58,5 @@ typedef struct {
     char data[128];     ///< Datos exta.
 } Resp;
 
+#pragma pack(pop)
 #endif

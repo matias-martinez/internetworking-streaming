@@ -13,7 +13,7 @@
 //Longitud Header y Carga no util de cada tipo de paquete
 #define LONG_HEADER 4
 #define LONG_GET 6
-#define LONG_POST 8
+#define LONG_POST 6
 #define LONG_SUS 2
 #define LONG_RESP 4
 
@@ -202,7 +202,7 @@ int Mensaje_enviar_post(int, Post *);
  * @return Post
  */
 
-Post *Mensaje_recibir_post(int, int);
+Post *Mensaje_recibir_post(int, const size_t);
 
 /**
  * Crea un mensaje del tipo Get.
