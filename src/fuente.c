@@ -80,6 +80,9 @@ int main(int argc, char *argv[]) {
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
 
     if (paquete_resp->tipo == 0) {
+        printf("Enviando ACK..");
+        paquete_resp = Mensaje_crear_resp(0, 11, "");
+        Mensaje_enviar_resp(sdf, paquete_resp);
         printf("Fuente Desconectada! Saliendo...\n");
     } else {
         printf("Falló Desuscripcion. Saliendo...\n");

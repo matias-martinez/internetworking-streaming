@@ -98,7 +98,7 @@ Header *Mensaje_recibir_header(int sdf) {
     Header *msj = NULL;
     int recibidos;
 
-    paquete = malloc(sizeof(Header));
+    paquete = malloc(LONG_HEADER);
     recibidos = receiveall(sdf, paquete, LONG_HEADER);
     msj = (Header *) paquete;
 
@@ -110,13 +110,14 @@ Header *Mensaje_recibir_header(int sdf) {
 
 Sus *Mensaje_crear_sus(int op, char data[]) {
     Sus *msj = NULL;
+    size_t dlen = strlen(data);
 
-    msj = (Sus *) malloc(sizeof(Sus));
+    msj = (Sus *) malloc(LONG_HEADER + LONG_SUS + dlen);
 
     msj->opcode = (uint16_t) SUS;
-    msj->dlen = (uint16_t) strlen(data);
+    msj->dlen = (uint16_t) dlen;
     msj->op = (uint16_t) op;
-    strcpy(msj->data, data);
+    strncpy(msj->data, data, dlen);
 
     return msj;
 }
@@ -128,7 +129,7 @@ int Mensaje_enviar_sus(int sdf, Sus *msj) {
     msj->dlen = htons(msj->dlen);
     msj->op = htons(msj->op);
 
-    return send(sdf, msj, byte_send , 0);
+    return sendall(sdf, (char *) msj, byte_send);
 }
 
 Sus *Mensaje_recibir_sus(int sdf, int dlen) {
@@ -141,30 +142,31 @@ Sus *Mensaje_recibir_sus(int sdf, int dlen) {
     char *paquete;
     Sus *msj;
     int recibidos;
-
-    paquete = malloc(sizeof(Sus));
-    msj = malloc(sizeof(Sus));
+    
+    paquete = malloc(LONG_SUS + dlen);
+    msj = malloc(LONG_HEADER + LONG_SUS + dlen);
     payload = (Payload *) malloc(LONG_SUS + dlen);
 
     recibidos = receiveall(sdf, paquete, LONG_SUS + dlen);
     payload = (Payload *) paquete;
 
     msj->op = ntohs(payload->op);
-    strcpy(msj->data, payload->data);
+    strncpy(msj->data, payload->data, dlen);
 
+    free(payload);
     return msj;
 }
 
 Resp *Mensaje_crear_resp(int tipo, int codigo, char data[]){
     Resp *msj;
-
-    msj = (Resp *) malloc(sizeof(Resp));
+    size_t dlen = strlen(data);
+    msj = (Resp *) malloc(LONG_HEADER + LONG_RESP + dlen);
 
     msj->opcode = (uint16_t) RESP;
-    msj->dlen = (uint16_t) strlen(data);
+    msj->dlen = (uint16_t) dlen;
     msj->tipo = (uint16_t) tipo;
     msj->codigo = (uint16_t) codigo;
-    strcpy(msj->data, data);
+    strncpy(msj->data, data, dlen);
 
     return msj;
 }
@@ -177,7 +179,7 @@ int Mensaje_enviar_resp(int sdf, Resp *msj){
     msj->tipo = htons(msj->tipo);
     msj->codigo = htons(msj->codigo);
 
-    return send(sdf, msj, byte_send, 0);
+    return sendall(sdf, (char *) msj, byte_send);
 }
 
 Resp *Mensaje_recibir_resp(int sdf, int dlen){
@@ -192,8 +194,8 @@ Resp *Mensaje_recibir_resp(int sdf, int dlen){
     Resp *msj;
     int recibidos;
 
-    paquete = malloc(sizeof(Resp));
-    msj = malloc(sizeof(Resp));
+    paquete = malloc(LONG_RESP + dlen);
+    msj = malloc(LONG_HEADER + LONG_RESP + dlen);
     payload = (Payload *) malloc(LONG_RESP + dlen);
 
     recibidos = receiveall(sdf, paquete, LONG_RESP + dlen);
@@ -201,21 +203,22 @@ Resp *Mensaje_recibir_resp(int sdf, int dlen){
 
     msj->tipo = ntohs(payload->tipo);
     msj->codigo = ntohs(payload->codigo);
-    strcpy(msj->data, payload->data);
+    strncpy(msj->data, payload->data, dlen);
 
-
+    free(payload);
     return msj;
 }
 
 Post *Mensaje_crear_post(int idFuente, uint32_t timestamp, char data []){
     Post *msj;
-    msj = (Post *) malloc(sizeof(Post));
+    size_t dlen = strlen(data);
+    msj = (Post *) malloc(LONG_HEADER + LONG_POST + dlen);
     
     msj->opcode = (uint16_t) POST;
-    msj->dlen = (uint16_t) strlen(data);
+    msj->dlen = (uint16_t) dlen;
     msj->idFuente = (uint16_t) idFuente;
     msj->timestamp = timestamp;
-    strcpy(msj->data, data);
+    strncpy(msj->data, data, dlen);
 
     return msj;
 }
@@ -228,8 +231,7 @@ int Mensaje_enviar_post(int sdf, Post *msj){
     msj->idFuente = htons(msj->idFuente);
     msj->timestamp = htonl(msj->timestamp);
     
-
-    return send(sdf, msj, byte_send , 0);
+    return sendall(sdf, (char *) msj, byte_send);
 }
 
 Post *Mensaje_recibir_post(int sdf, int dlen){
@@ -244,8 +246,8 @@ Post *Mensaje_recibir_post(int sdf, int dlen){
     Post *msj;
     int recibidos;
 
-    paquete = malloc(sizeof(Post));
-    msj = (Post *) malloc(sizeof(Post));
+    paquete = malloc(LONG_POST + dlen);
+    msj = (Post *) malloc(LONG_HEADER + LONG_POST + dlen);
     payload = (Payload *) malloc(LONG_POST + dlen);
 
     recibidos = receiveall(sdf, paquete, LONG_POST + dlen);
@@ -253,8 +255,9 @@ Post *Mensaje_recibir_post(int sdf, int dlen){
 
     msj->idFuente = ntohs(payload->idFuente);
     msj->timestamp = ntohl(payload->timestamp);
-    strcpy(msj->data, payload->data);
+    strncpy(msj->data, payload->data, dlen);
 
+    free(payload);
     return msj;
 
 }

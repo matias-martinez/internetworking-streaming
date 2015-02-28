@@ -74,7 +74,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
         int sdf = *(pth_struct->sdf);
         pth_struct->fuentes;
         struct sockaddr_in fuente = pth_struct->fuente;
-
+        short strike = 0;
         int sdf_open = 1;
         Header *header = NULL;
 
@@ -89,11 +89,9 @@ void * request_handler(struct pth_param_t *pth_struct) {
         
 //            sleep(1);                  // Simulo tiempo de procesamiento
             switch(header->opcode){
-                case 0:
-                    close(sdf);
-                    sdf_open = 0;
+                case GET:
                     break;
-                case 1:
+                case POST:
                     paquete_post = Mensaje_recibir_post(sdf, header->dlen);
                     printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
                     printf("Recibi estos datos: %s\t", paquete_post->data);
@@ -112,7 +110,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     Mensaje_enviar_resp(sdf, paquete_resp);
                     printf("---------------------------------------\n");
                     break;
-                case 2:
+                case SUS:
                     paquete_sus = Mensaje_recibir_sus(sdf, header->dlen);
                     printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
                     printf("Recibi estos datos: %s\n", paquete_sus->data);
@@ -168,7 +166,31 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         printf("---------------------------------------\n");
                     }
                     break;
+                case RESP:
+                    paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
+                    printf("Operacion del mensaje RESP = %d | tipo = %d\n", paquete_resp->codigo, paquete_resp->tipo);
+                    if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11) {
+                        sdf_open = 0;
+                        close(sdf);
+                        printf("ACK recibido.\n");
+                        printf("-------------------------------------------\n");
+                        pthread_exit(NULL);
+                    }
+                    break;
+                default:
+                    strike++;
+                    printf("Paquete Desconocido. %d Strike\n", strike);
+                    if (strike == 3) {
+                        printf("Desconectando la conexion\n");
+                        close(sdf);
+                        sdf_open = 0;
+                        pthread_exit(NULL);
+                    }
+                    break;
             }
+            free(paquete_resp);
+            free(paquete_sus);
+            free(header);
         }
 }
 
