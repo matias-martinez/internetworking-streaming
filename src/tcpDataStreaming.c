@@ -266,6 +266,63 @@ Post *Mensaje_recibir_post(int sdf, size_t dlen){
 }
 //TODO: Mensaje_crear_get ; Mensaje_enviar_get; Mensaje_recibir_get
 
+Get *Mensaje_crear_get(int idFuente, int op, int idDestino, char data[]){
+    Get *msj;
+    size_t dlen = strlen(data);
+    msj = (Get *) malloc(LONG_HEADER + LONG_GET + dlen);
+    
+    msj->opcode = (uint16_t) GET;
+    msj->dlen = (uint16_t) dlen;
+    msj->idFuente = (uint16_t) idFuente;
+    msj->op = (uint16_t)op;
+    msj->idDestino = (uint16_t) idDestino;
+    strncpy(msj->data, data, dlen);
+
+    return msj;
+}
+
+int Mensaje_enviar_get(int sdf, Get *msj ){
+    int byte_send = LONG_HEADER + LONG_GET + msj->dlen;
+
+    msj->opcode = htons(msj->opcode);
+    msj->dlen = htons(msj->dlen);
+    msj->idFuente = htons(msj->idFuente);
+    msj->op = htons(msj->op);
+    msj->idDestino = htons(msj->idDestino);
+    
+    return sendall(sdf, (char *) msj, byte_send);
+}
+
+Get *Mensaje_recibir_get(int sdf, int dlen){
+    typedef struct {
+        uint16_t idFuente;
+        uint16_t op;
+        uint16_t idDestino;
+        char data[dlen];
+    } Payload;
+
+    Payload *payload;
+    char *paquete;
+    Post *msj;
+    int recibidos;
+
+    paquete = malloc(LONG_GET + dlen);
+    msj = (Post *) malloc(LONG_HEADER + LONG_GET + dlen);
+    payload = (Payload *) malloc(LONG_GET + dlen);
+
+    recibidos = receiveall(sdf, paquete, LONG_POST + dlen);
+    payload = (Payload *) paquete;
+
+    msj->idFuente = ntohs(payload->idFuente);
+    msj->op = ntohs(payload->op);
+    msj->idDestino = ntohs(payload->idDestino);
+    strncpy(msj->data, payload->data, dlen);
+
+    free(payload);
+    return msj;
+
+}
+
 size_t getNroTokens(const char *str, const char *delim) {
     unsigned int nroTokens, i;
 
