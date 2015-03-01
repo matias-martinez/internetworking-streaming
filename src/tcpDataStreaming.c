@@ -293,7 +293,7 @@ int Mensaje_enviar_get(int sdf, Get *msj ){
     return sendall(sdf, (char *) msj, byte_send);
 }
 
-Get *Mensaje_recibir_get(int sdf, int dlen){
+Get *Mensaje_recibir_get(int sdf, size_t dlen){
     typedef struct {
         uint16_t idFuente;
         uint16_t op;
@@ -303,11 +303,11 @@ Get *Mensaje_recibir_get(int sdf, int dlen){
 
     Payload *payload;
     char *paquete;
-    Post *msj;
+    Get *msj;
     int recibidos;
 
     paquete = malloc(LONG_GET + dlen);
-    msj = (Post *) malloc(LONG_HEADER + LONG_GET + dlen);
+    msj = (Get *) malloc(LONG_HEADER + LONG_GET + dlen);
     payload = (Payload *) malloc(LONG_GET + dlen);
 
     recibidos = receiveall(sdf, paquete, LONG_POST + dlen);

@@ -1,4 +1,4 @@
-EXECUTABLES = fuente server fuente2
+EXECUTABLES = fuente server fuente2 consumidor
 SRCDIR = src
 BINDIR = bin
 INC = -I include
@@ -18,6 +18,9 @@ server: build
 fuente2: build
 	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente2.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente2
 
+consumidor: build
+
+	cc $(INC) $(CXXFLAGS) $(SRCDIR)/consumidor.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/consumidor
 
 clean:
 	rm -rf $(BINDIR) 

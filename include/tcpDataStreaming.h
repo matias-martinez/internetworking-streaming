@@ -222,7 +222,11 @@ Post *Mensaje_recibir_post(int, const size_t);
  * @param char \* data se usa unicamente para enviar 2 timestamp en el caso de que
  *      *op* == 1
  */
-Get *Mensaje_crear_get(int, int, int, int, char[]);
+Get *Mensaje_crear_get( int, int, int, char[]);
+
+int Mensaje_enviar_get(int, Get *);
+
+Get *Mensaje_recibir_get(int, const size_t);
 
 
 /**
