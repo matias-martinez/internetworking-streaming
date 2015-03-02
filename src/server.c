@@ -18,7 +18,7 @@ pthread_cond_t cond_list;
 struct pth_param_t {
     List fuentes;
     int *sdf;
-    struct sockaddr_in fuente;
+    struct sockaddr_in cliente;
 };
 
 void * request_handler();
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
     List fuentes = List_create(); 
     int sd = passiveTCPSocket(host, port, qlen);
     int sdf, lon;
-    struct sockaddr_in fuente;
+    struct sockaddr_in cliente;
     
     
     printf("|||| Servidor DataStreaming - v0.1 ||||\n");
@@ -52,15 +52,15 @@ int main(int argc, char *argv[]){
 
     lon = sizeof(struct sockaddr_in);
     printf("- Aguardando connect -\n");
-    while (sdf = accept(sd, (struct sockaddr *) &fuente, &lon)) {//CAMBIAR FUENTE POR CLIENTE!!
-        printf("Recibí connect desde: %s port %d\n", inet_ntoa(fuente.sin_addr), fuente.sin_port);
+    while (sdf = accept(sd, (struct sockaddr *) &cliente, &lon)) {
+        printf("Recibí connect desde: %s port %d\n", inet_ntoa(cliente.sin_addr), cliente.sin_port);
          
         pthread_t tid;
 
         struct pth_param_t estructura;
         estructura.fuentes = fuentes;
         estructura.sdf = &sdf;
-        estructura.fuente = fuente;
+        estructura.cliente = cliente;
 
         pthread_create(&tid, NULL, request_handler, &estructura);
     }
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
 void * request_handler(struct pth_param_t *pth_struct) {
         int sdf = *(pth_struct->sdf);
         pth_struct->fuentes;
-        struct sockaddr_in fuente = pth_struct->fuente;
+        struct sockaddr_in cliente = pth_struct->cliente;
         short strike = 0;
         int sdf_open = 1;
         Header *header = NULL;
@@ -84,24 +84,27 @@ void * request_handler(struct pth_param_t *pth_struct) {
             Resp *paquete_resp = NULL;
             Post *paquete_post = NULL;
             Get *paquete_get = NULL;
-            char aux[128];
-            char *aux2;
 
             printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
         
-           sleep(1);                  // Simulo tiempo de procesamiento
+            sleep(1);                  // Simulo tiempo de procesamiento
             switch(header->opcode){
                 case GET:
                     paquete_get = Mensaje_recibir_get(sdf, header->dlen);
+                    char *fuentes_csv;
+
                     printf("Mensaje GET:\n");
                     printf("Operacion: %d. \t",paquete_get->op );
                     printf("Id Fuente: %d.\t", paquete_get->idFuente);
                     printf("Id Destino: %d\t",paquete_get->idDestino);
                     printf("Data: %s\n",paquete_get->data);
-                    if (paquete_get->idFuente==0 ){//TODO: Check que lista tenga fuentes.
-                        aux2=List_to_csv(pth_struct->fuentes);
-                        paquete_resp = Mensaje_crear_resp(0,12,aux2);    
-                        Mensaje_enviar_resp(sdf,paquete_resp);                
+                    if (paquete_get->idFuente == 0) {
+                        if ((fuentes_csv = List_to_csv(pth_struct->fuentes)) != NULL) { ; 
+                            paquete_resp = Mensaje_crear_resp(0, 12, fuentes_csv);    
+                        } else {
+                            paquete_resp = Mensaje_crear_resp(1, 26, "Sin Fuentes Disponibles");
+                        }
+                            Mensaje_enviar_resp(sdf, paquete_resp);              
                     }/*else{
                         ENVIAR!: Leer lista de la fuente y enviar datos
                     }
@@ -131,9 +134,10 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
                     printf("Recibi estos datos: %s\n", paquete_sus->data);
                     
-                    char *ip = inet_ntoa(fuente.sin_addr);
+                    char *ip = inet_ntoa(cliente.sin_addr);
                     char *portF = malloc(6);
-                    sprintf(portF, "%d", fuente.sin_port);
+                    char *id_str = malloc(6);
+                    sprintf(portF, "%d", cliente.sin_port);
                    
                     if (paquete_sus->op == 0){
                         char **datos = wrapstrsep(paquete_sus->data, ";");
@@ -143,15 +147,14 @@ void * request_handler(struct pth_param_t *pth_struct) {
                             if (fuente_node == NULL) {
                                 printf("fallo la alocacion");
                             }
-                           
                             pthread_mutex_lock(&mutex_list);     
                             int id = List_push(pth_struct->fuentes, fuente_node);
                             pthread_cond_signal(&cond_list);
                             pthread_mutex_unlock(&mutex_list);
 
                             printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
-                            sprintf(aux, "%d", id);
-                            paquete_resp = Mensaje_crear_resp(0, 11, aux);
+                            sprintf(id_str, "%d", id);
+                            paquete_resp = Mensaje_crear_resp(0, 11, id_str);
                         }
                         else {
                             paquete_resp = Mensaje_crear_resp(1, 21, "");         //Tipo=1;Codigo=21;Data=NULL
@@ -165,12 +168,12 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         //CHECK!
                         int idSolicitado = atoi(paquete_sus->data);    
                         if (List_search_by_id(pth_struct->fuentes,idSolicitado) == -1){
-                            paquete_resp = Mensaje_crear_resp(1,22,"");
+                            paquete_resp = Mensaje_crear_resp(1, 22, "");
                             Mensaje_enviar_resp(sdf,paquete_resp);
                             printf("Mensaje RESP de ERROR enviado a un consumidor\n");
                             
-                        }else{
-                            paquete_resp = Mensaje_crear_resp(0,11,"");
+                        } else {
+                            paquete_resp = Mensaje_crear_resp(0, 11, "");
                             Mensaje_enviar_resp(sdf,paquete_resp);
                             printf("Mensaje RESP de Exito enviado a un consumidor\n");
                         }

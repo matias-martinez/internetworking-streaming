@@ -111,6 +111,8 @@ int List_search_by_id(List list, int id) {
 }
 
 char * List_to_csv(List list) {
+    if (list == NULL || list->count == 0) { return NULL; }
+
     int i;
     char *csv = malloc(150);
     strcat(csv, "id,type,description,ip,port;");

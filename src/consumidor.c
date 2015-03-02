@@ -26,12 +26,12 @@ int main(int argc, char *argv[]) {
     Resp *paquete_resp = NULL;
     Get *paquete_get = NULL;
     Post *paquete_post = NULL;
-    int len, enviados,recibidos,idFuente,i;
+    int enviados, recibidos, idFuente;
     time_t rawtime;
     struct tm *timestamp;
     char* temp = malloc(128); 
-    char *temp2=malloc(128);
-    char *bufferKeyboard1 = malloc(8);  //alberga id de fuente para solicitar suscripcion
+    char *temp2 = malloc(128);
+    char *bufferKeyboard = malloc(8);  //alberga id de fuente para solicitar suscripcion
     
 
     FILE *fp;
@@ -52,43 +52,38 @@ int main(int argc, char *argv[]) {
     printf("-Bienvenido. CONSUMIDOR DataStreaming-\n");
     printf("-Enviando Solicitud de Lista de Fuentes al Servidor...-\n");
 
-    paquete_get = Mensaje_crear_get(0,0,0,""); //Mensaje para solicitar Lista de Fuentes. OP = 0 (1er parametro)
+    paquete_get = Mensaje_crear_get(0, 0, 0, ""); //Mensaje para solicitar Lista de Fuentes. OP = 0 (1er parametro)
     enviados = Mensaje_enviar_get(sdf, paquete_get);
-    if (enviados=10){//enviados = 10 es la longitud del header mas la carga del msj op = 0
-        printf("Solicitud Enviada. Esperando Respuesta...\n");
-    }else{
-        printf("Error. Saliendo..\n");
-        exit(1);
-    }
+    
     header = Mensaje_recibir_header(sdf);
     printf("Recibí un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
 
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
     printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
 
-    if(paquete_resp->tipo==0 && paquete_resp->codigo == 12){
-        if (strlen(paquete_resp->data) > 0)
-        {
-            i=1;
+    if(paquete_resp->tipo == 0 && paquete_resp->codigo == 12){
+        if (strlen(paquete_resp->data) > 0) {
+            int i;
             char **datos = wrapstrsep(paquete_resp->data, ";");
-           // int index = strlen(datos)-1;//FIX:
-            int index = getNroTokens(paquete_resp->data,";");
             printf("LISTA DE FUENTES DISPONIBLES: \n");
-            for (printf("%s\n",datos[0]);i <index; i++){
-                printf("F: %s\n",datos[i]);
+            printf("%s\n", datos[0]); 
+            for (i = 1; strcmp(datos[i], "") != 0; i++) {
+                printf("FUENTE: %s\n", datos[i]);
             }
-        }else
-        {
-            printf("Recibí una lista de fuentes vacía! Nada que consumir :(\n");
-            exit(1);
         }
+    } else {
+        printf("Recibí una lista de fuentes vacía! Nada que consumir :(\n");
+        exit(1);
     }
+
     printf("Ingrese ID de la fuente deseada:\t");
-    fgets(bufferKeyboard1, 8, stdin);
+    fgets(bufferKeyboard, 8, stdin);
+
     //TODO chequear que sea un id existente!
-    idFuente = atoi(bufferKeyboard1);
-    paquete_sus = Mensaje_crear_sus(1,bufferKeyboard1);
-    free(bufferKeyboard1);
+    idFuente = atoi(bufferKeyboard);
+    paquete_sus = Mensaje_crear_sus(1, bufferKeyboard);
+    free(bufferKeyboard);
+
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
     printf("Enviados %d Bytes .. Esperando RESP!\n",enviados);
 
@@ -98,16 +93,14 @@ int main(int argc, char *argv[]) {
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
     printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
 
-    if (paquete_resp->tipo == 0 && paquete_resp->codigo ==11)
-    {
+    if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11) {
         printf("Suscripto a la fuente seleccionada!\n");
-    }else//TODO: dar la opcion de salir o de volver a ingresar
-    {
+    } else {              //TODO: dar la opcion de salir o de volver a ingresar
         printf("Error en la suscripcion. Saliendo..\n");
         exit(1);
     }
 
-    paquete_get = Mensaje_crear_get(idFuente,0,0,NULL); // VIOLACION DE SEGMENTO!
+    paquete_get = Mensaje_crear_get(idFuente, 0, 0, ""); 
     // TODO: Resolver tema del Id Destino!Que server asigne id a consumer o que sea la ip+puerto.
     //TODO: realizar un get historico
    

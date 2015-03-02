@@ -25,10 +25,12 @@ int main(int argc, char *argv[]) {
     Sus *paquete_sus = NULL;
     Resp *paquete_resp = NULL;
     Post *paquete_post = NULL;
-    int len, enviados,recibidos,id;
+    int enviados,recibidos,id;
     time_t rawtime;
     struct tm *timestamp;
-    char* temp = malloc(128);   //alberga lineas leidas del archivo
+    char *fp_linea = malloc(128);   //alberga lineas leidas del archivo
+    char *id_str = malloc(4);
+
 
     FILE *fp;
     fp = fopen(argv[1], "r");
@@ -53,11 +55,14 @@ int main(int argc, char *argv[]) {
         id = atoi(paquete_resp->data);
         printf("Mi ID ES %d\n", id );
         printf("Comienzo de Envio de Datos hacia el Servidor\n");
-        // ENVIO POSTS!!
-        while (!feof(fp) && fscanf(fp, "%s\n", temp) == 1) {
+        
+        unsigned int tipo = 0;
+        unsigned int codigo = 13;
+
+        while (!feof(fp) && fscanf(fp, "%s\n", fp_linea) == 1 && tipo == 0 && codigo == 13) {
             
             uint32_t tm = time(NULL);
-            paquete_post = Mensaje_crear_post(id, tm, temp);
+            paquete_post = Mensaje_crear_post(id, tm, fp_linea);
             printf("Campo DATA enviado: %s, timestamp: %d\n", paquete_post->data, paquete_post->timestamp);
             Mensaje_enviar_post(sdf, paquete_post);
 
@@ -65,15 +70,16 @@ int main(int argc, char *argv[]) {
             printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
             paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
             printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
+            tipo = paquete_resp->tipo;
+            codigo = paquete_resp->codigo;
         }
     } else {
             printf("Recibi un Codigo de Error. Saliendo...\n");
             exit(1);
     }
     
-    temp = realloc(temp, 4);
-    sprintf(temp, "%d", id);
-    paquete_sus = Mensaje_crear_sus(2, temp);
+    sprintf(id_str, "%d", id);
+    paquete_sus = Mensaje_crear_sus(2, id_str);
     Mensaje_enviar_sus(sdf, paquete_sus);
 
     header = Mensaje_recibir_header(sdf);
