@@ -5,6 +5,11 @@
 
 #define INCREMENT 10
 
+struct Consumidor {
+    unsigned short port;
+    char *ip;
+};
+
 struct Buffer {
     long int tm;
     char *data;
@@ -17,6 +22,7 @@ struct ListNode {
     char *ip;
     char *port;
     int cant_data;
+    struct Consumidor **consumidores;
     struct Buffer **buffer;
 };
 
@@ -46,6 +52,7 @@ ListNode ListNode_create(char *type, char *description, char *ip, char *port) {
     ln->ip = ip;
     ln->port = port;
     ln->buffer = (struct Buffer **) malloc(sizeof(struct Buffer));
+    ln->consumidores = (struct Consumidor **) malloc(sizeof(struct Consumidor));
     ln->cant_data = 0;
 
     return ln;
@@ -171,4 +178,28 @@ int List_add_data_to_node_buffer(List list, int id, long int tm, char *data) {
         return 1;
     }
     return -1;
+}
+
+int List_registrar_consumidor(List list, int id, char *ip, unsigned short port) {
+    if (List_search_by_id(list, id) != -1) {
+    
+        struct ListNode *node = list->elements[id];
+        size_t size = sizeof(node->consumidores) / sizeof(struct Consumidor);
+
+        node->consumidores = (struct Consumidor **) realloc(node->consumidores, sizeof(struct Consumidor) * (size + 1));
+        node->consumidores[size] = (struct Consumidor *) malloc(sizeof(struct Consumidor));
+        node->consumidores[size]->port = port;
+        node->consumidores[size]->ip = (char *) malloc(strlen(ip));
+        strcpy(node->consumidores[size]->ip, ip);
+    
+        return size;
+    }
+    return -1;
+}
+
+struct Consumidor **List_get_consumidores(List list, int id) {
+    if (List_search_by_id(list, id) != -1) {
+        return list->elements[id]->consumidores;
+    }
+    return NULL;
 }

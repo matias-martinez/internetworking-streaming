@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
 
     if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11) {
         printf("Suscripto a la fuente seleccionada!\n");
+        printf("Mi ID es %s\n", paquete_resp->data);
     } else {              //TODO: dar la opcion de salir o de volver a ingresar
         printf("Error en la suscripcion. Saliendo..\n");
         exit(1);
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
     printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
 
-    if (paquete_resp->tipo == 0 && paquete_resp->codigo ==11){
+    if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11){
        //RECIBIR!
            printf("Exito en la solicitud GET\n");
        } else//TODO: dar la opcion de salir o de volver a ingresar

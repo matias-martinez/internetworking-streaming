@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h> // sleep
+#include <signal.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "list.h"
@@ -25,13 +26,19 @@ void * request_handler();
 
 struct pth_param_t Crear_estructura_pthread();
 
+void sigint_handler(int signum) {
+    printf("\n\n------ME INTERRUMPIERON------\n\n");
+    exit(signum);
+}
+
 int main(int argc, char *argv[]){
     if (argc != 4) {
         printf("usage: %s [HOST] [PORT] [QLEN]\n", argv[0]);
         printf("Example ./server 127.0.0.1 8888 10\n");
         exit(1);
     }
-    
+ 
+    signal(SIGINT, sigint_handler);
     char *end;
     char *host = argv[1];
     int port = strtol(argv[2], &end, 10);
@@ -104,11 +111,11 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         } else {
                             paquete_resp = Mensaje_crear_resp(1, 26, "Sin Fuentes Disponibles");
                         }
-                            Mensaje_enviar_resp(sdf, paquete_resp);              
-                    }/*else{
-                        ENVIAR!: Leer lista de la fuente y enviar datos
+                    } else {
                     }
-                    */
+
+                    Mensaje_enviar_resp(sdf, paquete_resp);
+
                     break;
                 case POST:
                     paquete_post = Mensaje_recibir_post(sdf, header->dlen);
@@ -117,11 +124,9 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Con este timestamp: %d\n", paquete_post->timestamp);
                     
                     if (List_search_by_id(pth_struct->fuentes, paquete_post->idFuente) != -1) {
-                       
-                        // TODO Agregar datos al buffer de la fuente
                         List_add_data_to_node_buffer(pth_struct->fuentes, paquete_post->idFuente,
                                 paquete_post->timestamp, paquete_post->data);
-
+                        
                         paquete_resp = Mensaje_crear_resp(0, 13, "");
                     } else {
                         paquete_resp = Mensaje_crear_resp(1, 22, "");
@@ -164,19 +169,22 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         printf("---------------------------------------\n");
                     }
                     if (paquete_sus->op == 1){
-                        //TODO: Solicitud de Sucripcion de Consumidor. Proxima Version.
-                        //CHECK!
-                        int idSolicitado = atoi(paquete_sus->data);    
-                        if (List_search_by_id(pth_struct->fuentes,idSolicitado) == -1){
-                            paquete_resp = Mensaje_crear_resp(1, 22, "");
-                            Mensaje_enviar_resp(sdf,paquete_resp);
-                            printf("Mensaje RESP de ERROR enviado a un consumidor\n");
-                            
+                        int idSolicitado = atoi(paquete_sus->data);
+                        pthread_mutex_lock(&mutex_list);
+                        int idDestino = List_registrar_consumidor(pth_struct->fuentes, idSolicitado,
+                                inet_ntoa(cliente.sin_addr), cliente.sin_port);
+                        pthread_cond_signal(&cond_list);
+                        pthread_mutex_unlock(&mutex_list);
+                        if (idDestino != -1) {
+                            char * idDestino_str = malloc(6);
+                            sprintf(idDestino_str, "%d", idDestino);
+                            paquete_resp = Mensaje_crear_resp(0, 11, idDestino_str);
+                            free(idDestino_str);
                         } else {
-                            paquete_resp = Mensaje_crear_resp(0, 11, "");
-                            Mensaje_enviar_resp(sdf,paquete_resp);
-                            printf("Mensaje RESP de Exito enviado a un consumidor\n");
+                            paquete_resp = Mensaje_crear_resp(1, 22, "Id fuente inexistente");
                         }
+
+                        Mensaje_enviar_resp(sdf,paquete_resp);
 
                     }
                     if (paquete_sus->op == 2){
@@ -197,6 +205,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         Mensaje_enviar_resp(sdf, paquete_resp);
                         printf("---------------------------------------\n");
                     }
+
                     break;
                 case RESP:
                     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
