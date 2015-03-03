@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
     int port = strtol(argv[3], &end, 10);
 
     int sdf = connectTCP(host, port);
+    int myId;
     Header *header = NULL;
     Sus *paquete_sus = NULL;
     Resp *paquete_resp = NULL;
@@ -29,8 +30,6 @@ int main(int argc, char *argv[]) {
     int enviados, recibidos, idFuente;
     time_t rawtime;
     struct tm *timestamp;
-    char* temp = malloc(128); 
-    char *temp2 = malloc(128);
     char *bufferKeyboard = malloc(8);  //alberga id de fuente para solicitar suscripcion
     
 
@@ -81,6 +80,7 @@ int main(int argc, char *argv[]) {
 
     //TODO chequear que sea un id existente!
     idFuente = atoi(bufferKeyboard);
+    sprintf(bufferKeyboard, "%d", idFuente);
     paquete_sus = Mensaje_crear_sus(1, bufferKeyboard);
     free(bufferKeyboard);
 
@@ -96,25 +96,32 @@ int main(int argc, char *argv[]) {
     if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11) {
         printf("Suscripto a la fuente seleccionada!\n");
         printf("Mi ID es %s\n", paquete_resp->data);
+        myId = atoi(paquete_resp->data);
     } else {              //TODO: dar la opcion de salir o de volver a ingresar
         printf("Error en la suscripcion. Saliendo..\n");
         exit(1);
     }
 
-    paquete_get = Mensaje_crear_get(idFuente, 0, 0, ""); 
-    // TODO: Resolver tema del Id Destino!Que server asigne id a consumer o que sea la ip+puerto.
     //TODO: realizar un get historico
-   
+    paquete_get = Mensaje_crear_get(idFuente, 0, myId, "");
+    Mensaje_enviar_get(sdf, paquete_get);
+    header = Mensaje_recibir_header(sdf);
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
-    printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
 
-    if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11){
-       //RECIBIR!
-           printf("Exito en la solicitud GET\n");
-       } else//TODO: dar la opcion de salir o de volver a ingresar
-        {
-        printf("Error en la solicitud GET a la Fuente. Saliendo..");
-        exit(1);
+    int existen_nuevos_paquetes = 0;
+    while (existen_nuevos_paquetes == 0) {
+        if ( paquete_resp->codigo == 14) {
+            printf("Recibí un RESP de tipo %d y código %d y datos: %s\n", paquete_resp->tipo, paquete_resp->codigo, paquete_resp->data);
+            paquete_get = Mensaje_crear_get(idFuente, 0, myId, "");
+            Mensaje_enviar_get(sdf, paquete_get);
+
+            header = Mensaje_recibir_header(sdf);
+            paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
+        } else {   
+            //TODO: dar la opcion de salir o de volver a ingresar
+            printf("Error en la solicitud GET a la Fuente. Saliendo..");
+            exit(1);
+        }
     }
 
   

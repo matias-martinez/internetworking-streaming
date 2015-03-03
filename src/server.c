@@ -12,6 +12,7 @@
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "list.h"
+#include "flags.h"
 
 pthread_mutex_t mutex_list;
 pthread_cond_t cond_list;
@@ -98,7 +99,9 @@ void * request_handler(struct pth_param_t *pth_struct) {
             switch(header->opcode){
                 case GET:
                     paquete_get = Mensaje_recibir_get(sdf, header->dlen);
-                    char *fuentes_csv;
+                    char *data;
+                    int tipo;
+                    int codigo;
 
                     printf("Mensaje GET:\n");
                     printf("Operacion: %d. \t",paquete_get->op );
@@ -106,16 +109,33 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Id Destino: %d\t",paquete_get->idDestino);
                     printf("Data: %s\n",paquete_get->data);
                     if (paquete_get->idFuente == 0) {
-                        if ((fuentes_csv = List_to_csv(pth_struct->fuentes)) != NULL) { ; 
-                            paquete_resp = Mensaje_crear_resp(0, 12, fuentes_csv);    
+                        if ((data = List_to_csv(pth_struct->fuentes)) != NULL) { ; 
+                            tipo = 0;
+                            codigo = 12;
                         } else {
-                            paquete_resp = Mensaje_crear_resp(1, 26, "Sin Fuentes Disponibles");
+                            tipo = 1;
+                            codigo = 26;
                         }
                     } else {
+                        int salida = List_get_node_data(pth_struct->fuentes, paquete_get->idFuente, paquete_get->idDestino, data);
+                        switch (salida) {
+                            case SUCCESS:
+                                tipo = 0;
+                                codigo = 14;
+                                printf("Enviando Datos a consumidor de id: %d\n", paquete_get->idDestino);
+                                break;
+                            case OVER:              // TODO: tratar errores
+                            case LISTNULL:
+                            case NODENULL:
+                            case DESTNULL:
+                            case TMINV:
+                                tipo = 1;
+                                codigo = 21;
+                                break;
+                            }
                     }
-
+                    paquete_resp = Mensaje_crear_resp(tipo, codigo, data);
                     Mensaje_enviar_resp(sdf, paquete_resp);
-
                     break;
                 case POST:
                     paquete_post = Mensaje_recibir_post(sdf, header->dlen);
