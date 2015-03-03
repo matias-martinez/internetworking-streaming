@@ -2,12 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
+#include "flags.h"
 
 #define INCREMENT 10
 
 struct Consumidor {
     unsigned short port;
     char *ip;
+    long int tm_inicio;
+    long int tm_fin;
+    unsigned long int data_enviada;
 };
 
 struct Buffer {
@@ -66,16 +70,16 @@ static void increment_array_size(List list) {
 
 static int get_null(List list) {
     int i;
-    for (i = 0; i < list->count; i++) {
+    for (i = 1; i <= list->count; i++) {
         if (list->elements[i] == NULL) {
             return i;
         }
     }
-    return -1;
+    return FAIL;
 }
 
 int List_push(List list, ListNode node) {
-    if (list == NULL || node == NULL) { return -1; }
+    if (list == NULL || node == NULL) { return FAIL; }
 
     int blank_space = get_null(list);
     int id;
@@ -83,12 +87,14 @@ int List_push(List list, ListNode node) {
         if (list->count >= list->max) {
             increment_array_size(list);
         }
-        id = list->count;
+        id = list->count + 1;
         list->count++;
     } else {
         id = blank_space;
     }
-   
+  
+    node->id = malloc(2);
+    sprintf(node->id, "%d", id);
     list->elements[id] = (ListNode) malloc(sizeof(struct ListNode));
     memcpy(list->elements[id], node, sizeof(struct ListNode));
     
@@ -99,7 +105,7 @@ int List_search_by_ip_port(List list, char * ip, char * port) {
     if (list == NULL) return -1;
     
     unsigned int i;
-    for (i = 0; i < list->count; i++) {
+    for (i = 1; i <= list->count; i++) {
         if (list->elements[i] != NULL) {
             if (strcmp(list->elements[i]->ip, ip) == 0 && strcmp(list->elements[i]->port, port)==0) {
                 return i;
@@ -107,12 +113,12 @@ int List_search_by_ip_port(List list, char * ip, char * port) {
         }
     }
 
-    return -1;
+    return FAIL;
 } 
 
 int List_search_by_id(List list, int id) {
-    if (list == NULL || list->count < id || list->elements[id] == NULL) {
-        return -1;
+    if (list == NULL || list->elements[id] == NULL) {
+        return FAIL;
     } else
         return id;
 }
@@ -124,10 +130,10 @@ char * List_to_csv(List list) {
     char *csv = malloc(150);
     strcat(csv, "id,type,description,ip,port;");
     
-    for (i = 0; i < list->count; i++) {
+    for (i = 1; i <= list->count; i++) {
         if (list->elements[i] != NULL) {
             char id[5];
-            sprintf(id, "%d", list->elements[i]->id);
+            strcpy(id, list->elements[i]->id);
             char *type = (char *) list->elements[i]->type;
             char *ip = list->elements[i]->ip;
             char *description = list->elements[i]->description;
@@ -160,11 +166,11 @@ char * List_to_csv(List list) {
 }
 
 void List_delete_by_id(List list, int id) {
-    list->elements[id] = NULL;
+    //list->elements[id] = NULL;
 }
 
 int List_add_data_to_node_buffer(List list, int id, long int tm, char *data) {
-    if (List_search_by_id(list, id) != -1) {
+    if (List_search_by_id(list, id) != FAIL) {
         struct ListNode *node = list->elements[id];
         int size = node->cant_data;
         
@@ -175,31 +181,69 @@ int List_add_data_to_node_buffer(List list, int id, long int tm, char *data) {
         strcpy(node->buffer[size]->data, data);
         node->cant_data++;
     
-        return 1;
+        return SUCCESS;
     }
-    return -1;
+    return FAIL;
 }
 
 int List_registrar_consumidor(List list, int id, char *ip, unsigned short port) {
-    if (List_search_by_id(list, id) != -1) {
+    if (List_search_by_id(list, id) != FAIL) {
     
         struct ListNode *node = list->elements[id];
+        struct Consumidor *consumidor;
         size_t size = sizeof(node->consumidores) / sizeof(struct Consumidor);
 
         node->consumidores = (struct Consumidor **) realloc(node->consumidores, sizeof(struct Consumidor) * (size + 1));
         node->consumidores[size] = (struct Consumidor *) malloc(sizeof(struct Consumidor));
-        node->consumidores[size]->port = port;
-        node->consumidores[size]->ip = (char *) malloc(strlen(ip));
+        consumidor = node->consumidores[size];
+        consumidor->port = port;
+        consumidor->ip = (char *) malloc(strlen(ip));
+        consumidor->tm_inicio = 0;
+        consumidor->tm_fin = 0;
+        consumidor->data_enviada = 0;
         strcpy(node->consumidores[size]->ip, ip);
     
         return size;
     }
-    return -1;
+    return FAIL;
 }
 
-struct Consumidor **List_get_consumidores(List list, int id) {
-    if (List_search_by_id(list, id) != -1) {
-        return list->elements[id]->consumidores;
+struct Consumidor **List_get_consumidores(List list, int idFuente) {
+    if (List_search_by_id(list, idFuente) != FAIL) {
+        return list->elements[idFuente]->consumidores;
     }
     return NULL;
+}
+
+struct Consumidor *List_get_consumidor(List list, int idFuente, int idDestino) {
+    if (List_search_by_id(list, idFuente) != FAIL) {
+        struct Consumidor *con;
+        if ((con = list->elements[idFuente]->consumidores[idDestino]) != NULL) {
+            return con;
+        };
+    }
+    return NULL;  
+}
+
+int List_get_node_data(List list, int idFuente, int idDestino, char *data) {
+    if (list == NULL) { return LISTNULL; }
+    if (list->elements[idFuente] == NULL ) { return NODENULL; }
+    
+    struct Consumidor *con = List_get_consumidor(list, idFuente, idDestino);
+
+    if (con == NULL) { return DESTNULL; }
+    
+    struct ListNode *node = list->elements[idFuente];
+
+    if (node->cant_data > con->data_enviada) {
+        struct Buffer *buffer = node->buffer[con->data_enviada];
+        sprintf(data, "%ld", buffer->tm);
+        strncat(data, ";", 1);
+        strncat(data, buffer->data, strlen(buffer->data));
+        con->data_enviada++;
+    } else {
+        return OVER;
+    }
+
+    return SUCCESS;
 }
