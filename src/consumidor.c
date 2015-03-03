@@ -8,6 +8,15 @@
 #include "tcpDataStreaming.h"
 #include "structures.h"
 
+char *strip(char *str) {
+    size_t ln = strlen(str) - 1;
+    if (str[ln] == '\n') {
+        str[ln] = '\0';
+    }
+
+    return str;
+}
+
 int main(int argc, char *argv[]) {
 
     if (argc != 4) {
@@ -30,7 +39,7 @@ int main(int argc, char *argv[]) {
     int enviados, recibidos, idFuente;
     time_t rawtime;
     struct tm *timestamp;
-    char *bufferKeyboard = malloc(8);  //alberga id de fuente para solicitar suscripcion
+    char *bufferKeyboard = malloc(12);  //alberga id de fuente para solicitar suscripcion
     
 
     FILE *fp;
@@ -82,7 +91,6 @@ int main(int argc, char *argv[]) {
     idFuente = atoi(bufferKeyboard);
     sprintf(bufferKeyboard, "%d", idFuente);
     paquete_sus = Mensaje_crear_sus(1, bufferKeyboard);
-    free(bufferKeyboard);
 
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
     printf("Enviados %d Bytes .. Esperando RESP!\n",enviados);
@@ -103,7 +111,28 @@ int main(int argc, char *argv[]) {
     }
 
     //TODO: realizar un get historico
-    paquete_get = Mensaje_crear_get(idFuente, 0, myId, "");
+    //
+
+
+    printf("\nDesea obtener datos: \n0-Todos\n1-Historicos\nIngrese su opcion: \n");
+    fgets(bufferKeyboard, 8, stdin);
+    int op = atoi(&bufferKeyboard[0]);
+    char *data = "";
+
+    if (op == 1) {
+        // TODO: asegurarse que ingrese por lo menos 0
+        data = malloc(25);
+        printf("Ingrese 2 timestamp (0 para ingorar ese timestamp)\n");
+        printf("Inicio: \n");
+        fgets(bufferKeyboard, 12, stdin);
+        strncat(data, strip(bufferKeyboard), strlen(bufferKeyboard));
+        printf("Fin: \n");
+        strncat(data, ";", 1);
+        fgets(bufferKeyboard, 12, stdin);
+        strncat(data, strip(bufferKeyboard), strlen(bufferKeyboard));
+    }
+
+    paquete_get = Mensaje_crear_get(idFuente, op, myId, data);
     Mensaje_enviar_get(sdf, paquete_get);
     header = Mensaje_recibir_header(sdf);
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
@@ -112,7 +141,7 @@ int main(int argc, char *argv[]) {
     while (existen_nuevos_paquetes == 0) {
         if ( paquete_resp->codigo == 14) {
             printf("Recibí un RESP de tipo %d y código %d y datos: %s\n", paquete_resp->tipo, paquete_resp->codigo, paquete_resp->data);
-            paquete_get = Mensaje_crear_get(idFuente, 0, myId, "");
+            paquete_get = Mensaje_crear_get(idFuente, op, myId, data);
             Mensaje_enviar_get(sdf, paquete_get);
 
             header = Mensaje_recibir_header(sdf);
@@ -125,7 +154,7 @@ int main(int argc, char *argv[]) {
     }
 
   
-
+    // TODO: cerrar bien la conexion
     fclose(fp);
     close(sdf);
     return 0;

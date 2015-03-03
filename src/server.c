@@ -117,7 +117,15 @@ void * request_handler(struct pth_param_t *pth_struct) {
                             codigo = 26;
                         }
                     } else {
-                        int salida = List_get_node_data(pth_struct->fuentes, paquete_get->idFuente, paquete_get->idDestino, data);
+                        unsigned int tminicio = 0;
+                        unsigned int tmfin = 0;
+                        if (paquete_get->op == 1) {
+                            char **datos = wrapstrsep(paquete_get->data, ";");
+                            tminicio = atoi(datos[0]);
+                            tmfin = atoi(datos[1]);
+                        }
+                        int salida = List_get_node_data(pth_struct->fuentes, paquete_get->idFuente, 
+                                paquete_get->idDestino, data, tminicio, tmfin);
                         switch (salida) {
                             case SUCCESS:
                                 tipo = 0;
