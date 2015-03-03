@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "list.h"
 #include "flags.h"
 
@@ -9,13 +10,14 @@
 struct Consumidor {
     unsigned short port;
     char *ip;
-    long int tm_inicio;
-    long int tm_fin;
     unsigned long int data_enviada;
+    unsigned long int data_fin;
+    unsigned int tm_inicio;
+    unsigned int tm_fin;
 };
 
 struct Buffer {
-    long int tm;
+    unsigned int tm;
     char *data;
 };
 
@@ -128,18 +130,17 @@ char * List_to_csv(List list) {
 
     int i;
     char *csv = malloc(150);
-    strcat(csv, "id,type,description,ip,port;");
+    strcat(csv, "id,type,description,primer tm;");
     
     for (i = 1; i <= list->count; i++) {
-        if (list->elements[i] != NULL) {
-            char id[5];
-            strcpy(id, list->elements[i]->id);
+        if (list->elements[i] != NULL) { 
+            char tm_inicio[10];
+            sprintf(tm_inicio, "%li", list->elements[i]->buffer[0]->tm);
+            char *id = list->elements[i]->id;
             char *type = (char *) list->elements[i]->type;
-            char *ip = list->elements[i]->ip;
             char *description = list->elements[i]->description;
-            char *port = list->elements[i]->port;
             
-            int len_of_current_node = strlen(id) + strlen(type) + strlen(ip) + strlen(description) + strlen(port)+ 4; // 4 = separadores
+            int len_of_current_node = strlen(id) + strlen(type) + strlen(description) + strlen(tm_inicio) +3; // 3 = separadores
             int len_of_csv = strlen(csv);
                     
             void *new_csv = realloc(csv, len_of_current_node + len_of_csv + 1);
@@ -155,9 +156,7 @@ char * List_to_csv(List list) {
             strcat(csv, ",");
             strcat(csv, description);
             strcat(csv, ",");
-            strcat(csv, ip);
-            strcat(csv, ",");
-            strcat(csv, port);
+            strcat(csv, tm_inicio);
             strcat(csv, ";");
         }
     }
@@ -186,7 +185,7 @@ int List_add_data_to_node_buffer(List list, int id, long int tm, char *data) {
     return FAIL;
 }
 
-int List_registrar_consumidor(List list, int id, char *ip, unsigned short port) {
+int List_registrar_consumidor(List list, int id, char *ip, unsigned short port, long int tminicio, long int tmfin) {
     if (List_search_by_id(list, id) != FAIL) {
     
         struct ListNode *node = list->elements[id];
@@ -198,9 +197,11 @@ int List_registrar_consumidor(List list, int id, char *ip, unsigned short port) 
         consumidor = node->consumidores[size];
         consumidor->port = port;
         consumidor->ip = (char *) malloc(strlen(ip));
+        consumidor->data_enviada = 0;
+        consumidor->data_fin = ULONG_MAX;
         consumidor->tm_inicio = 0;
         consumidor->tm_fin = 0;
-        consumidor->data_enviada = 0;
+        
         strcpy(node->consumidores[size]->ip, ip);
     
         return size;
@@ -225,7 +226,28 @@ struct Consumidor *List_get_consumidor(List list, int idFuente, int idDestino) {
     return NULL;  
 }
 
-int List_get_node_data(List list, int idFuente, int idDestino, char *data) {
+static List_search(List list, int idFuente, unsigned int tm) {
+    struct ListNode *node = list->elements[idFuente];
+    struct Buffer **buffer = node->buffer;
+    int inicio = 0;
+    int fin = node->cant_data;
+
+    while (1) {
+        int m = (fin + inicio) / 2;
+        if (buffer[m]->tm < tm) {
+            inicio = m - 1;
+        } else if (buffer[m]->tm > tm) {
+            fin = m + 1;
+        } else {
+            return m;
+        }
+        if (inicio > fin) {         // tm con mejor esfuerzo
+            return m;
+        }
+    }   
+}
+
+int List_get_node_data(List list, int idFuente, int idDestino, char *data, unsigned int tminicio, unsigned int tmfin) {
     if (list == NULL) { return LISTNULL; }
     if (list->elements[idFuente] == NULL ) { return NODENULL; }
     
@@ -234,8 +256,17 @@ int List_get_node_data(List list, int idFuente, int idDestino, char *data) {
     if (con == NULL) { return DESTNULL; }
     
     struct ListNode *node = list->elements[idFuente];
-
-    if (node->cant_data > con->data_enviada) {
+    
+    if (con->tm_inicio != tminicio) {
+        con->tm_inicio = tminicio;
+        con->data_enviada = tminicio != 0 ? List_search(list, idFuente, tminicio) : 0;
+    }
+    if (con->tm_fin != tmfin) {
+        con->tm_fin = tmfin;
+        con->data_fin = tmfin != 0 ? List_search(list, idFuente, tmfin) : ULONG_MAX;
+    }
+    
+    if (node->cant_data > con->data_enviada && con->data_enviada <= con->data_fin) {
         struct Buffer *buffer = node->buffer[con->data_enviada];
         sprintf(data, "%ld", buffer->tm);
         strncat(data, ";", 1);
