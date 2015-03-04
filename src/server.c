@@ -95,7 +95,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
 
             printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
         
-            sleep(1);                  // Simulo tiempo de procesamiento
+            //sleep(1);                  // Simulo tiempo de procesamiento
             switch(header->opcode){
                 case GET:
                     paquete_get = Mensaje_recibir_get(sdf, header->dlen);
@@ -116,34 +116,44 @@ void * request_handler(struct pth_param_t *pth_struct) {
                             tipo = 1;
                             codigo = 26;
                         }
+                        paquete_resp = Mensaje_crear_resp(tipo, codigo, data);
+                        Mensaje_enviar_resp(sdf, paquete_resp);
+
                     } else {
                         unsigned int tminicio = 0;
                         unsigned int tmfin = 0;
+                        int salida;
+
                         if (paquete_get->op == 1) {
                             char **datos = wrapstrsep(paquete_get->data, ";");
                             tminicio = atoi(datos[0]);
                             tmfin = atoi(datos[1]);
                         }
-                        int salida = List_get_node_data(pth_struct->fuentes, paquete_get->idFuente, 
-                                paquete_get->idDestino, data, tminicio, tmfin);
-                        switch (salida) {
-                            case SUCCESS:
-                                tipo = 0;
-                                codigo = 14;
-                                printf("Enviando Datos a consumidor de id: %d\n", paquete_get->idDestino);
-                                break;
-                            case OVER:              // TODO: tratar errores
-                            case LISTNULL:
-                            case NODENULL:
-                            case DESTNULL:
-                            case TMINV:
-                                tipo = 1;
-                                codigo = 21;
-                                break;
-                            }
+                        
+                        do {
+                            salida = List_get_node_data(pth_struct->fuentes, paquete_get->idFuente, 
+                                    paquete_get->idDestino, data, tminicio, tmfin);
+                            switch (salida) {
+                                case SUCCESS:
+                                    tipo = 0;
+                                    codigo = 14;
+                                    printf("Enviando Datos a consumidor de id: %d\n", paquete_get->idDestino);
+                                    break;
+                                case OVER:              // TODO: tratar errores
+                                case LISTNULL:
+                                case NODENULL:
+                                case DESTNULL:
+                                case TMINV:
+                                    tipo = 1;
+                                    codigo = 21;
+                                    break;
+                                }
+                        
+                            paquete_resp = Mensaje_crear_resp(tipo, codigo, data);
+                            Mensaje_enviar_resp(sdf, paquete_resp);
+                        } while (salida == SUCCESS);
                     }
-                    paquete_resp = Mensaje_crear_resp(tipo, codigo, data);
-                    Mensaje_enviar_resp(sdf, paquete_resp);
+
                     break;
                 case POST:
                     paquete_post = Mensaje_recibir_post(sdf, header->dlen);
