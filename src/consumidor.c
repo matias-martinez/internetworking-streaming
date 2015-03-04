@@ -31,6 +31,8 @@ int main(int argc, char *argv[]) {
 
     int sdf = connectTCP(host, port);
     int myId;
+	char * continuar;
+	
     Header *header = NULL;
     Sus *paquete_sus = NULL;
     Resp *paquete_resp = NULL;
@@ -58,7 +60,9 @@ int main(int argc, char *argv[]) {
     //loop
     //sus op = 2. si resp o, 11 --> termino
     printf("-Bienvenido. CONSUMIDOR DataStreaming-\n");
-    printf("-Enviando Solicitud de Lista de Fuentes al Servidor...-\n");
+    
+	while(continuar != "n"){
+	printf("-Enviando Solicitud de Lista de Fuentes al Servidor...-\n");
 
     paquete_get = Mensaje_crear_get(0, 0, 0, ""); //Mensaje para solicitar Lista de Fuentes. OP = 0 (1er parametro)
     enviados = Mensaje_enviar_get(sdf, paquete_get);
@@ -107,12 +111,12 @@ int main(int argc, char *argv[]) {
         myId = atoi(paquete_resp->data);
     } else {              //TODO: dar la opcion de salir o de volver a ingresar
         printf("Error en la suscripcion. Saliendo..\n");
-        exit(1);
+		printf("Desea Continuar la ejecución? [N]o - [S]i :\t");
+		fgets(continuar,1,stdin);
+      
     }
 
-    //TODO: realizar un get historico
-    //
-
+   
 
     printf("\nDesea obtener datos: \n0-Todos\n1-Historicos\nIngrese su opcion: \n");
     fgets(bufferKeyboard, 8, stdin);
@@ -148,12 +152,14 @@ int main(int argc, char *argv[]) {
             paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
         } else {   
             //TODO: dar la opcion de salir o de volver a ingresar
-            printf("Error en la solicitud GET a la Fuente. Saliendo..");
-            exit(1);
+		    printf("Error en la solicitud GET a la Fuente. ");
+			printf("Desea Continuar la ejecución? No - Si :\t");
+			fgets(continuar,1,stdin);    
+           
         }
     }
 
-  
+  	}
     // TODO: cerrar bien la conexion
     fclose(fp);
     close(sdf);
