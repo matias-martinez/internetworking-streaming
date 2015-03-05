@@ -1,5 +1,5 @@
 EXECUTABLES = fuente server fuente2 consumidor
-DEP = src/utils.c src/tcpDataStreaming.c src/list.c
+DEP = src/utils.c src/tcpDataStreaming.c src/list.c src/out.c
 SRCDIR = src
 BINDIR = bin
 INC = -I include
