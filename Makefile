@@ -1,25 +1,18 @@
 EXECUTABLES = fuente server fuente2 consumidor
+DEP = src/utils.c src/tcpDataStreaming.c src/list.c
 SRCDIR = src
 BINDIR = bin
 INC = -I include
 CXXFLAGS = -g
+LIB = -lpthread
 
 all: build $(EXECUTABLES)
 
 build:
 	@mkdir -p bin
 
-fuente: build
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente
-
-server: build
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/server.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c $(SRCDIR)/list.c -o $(BINDIR)/server -lpthread
-
-fuente2: build
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente2.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente2
-
-consumidor: build
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/consumidor.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/consumidor
+$(EXECUTABLES):
+	$(CC) $(INC) $(CXXFLAGS) $(SRCDIR)/$@.c  $(DEP) -o $(BINDIR)/$@ $(LIB)
 
 clean:
 	rm -rf $(BINDIR) 
