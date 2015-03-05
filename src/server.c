@@ -7,7 +7,6 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <string.h>
-#include <unistd.h> // sleep
 #include <signal.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
@@ -52,8 +51,8 @@ int main(int argc, char *argv[]){
     int sdf, lon;
     struct sockaddr_in cliente;
     
-    
-    printf("|||| Servidor DataStreaming - v0.1 ||||\n");
+    printf("\e[1;1H\e[2J");   
+    printf("|||| Servidor DataStreaming - v0.2 ||||\n");
     printf("---------------------------------------\n");
     
     pthread_mutex_init(&mutex_list, NULL);
@@ -95,21 +94,14 @@ void * request_handler(struct pth_param_t *pth_struct) {
             Post *paquete_post = NULL;
             Get *paquete_get = NULL;
 
-            printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
-        
-            //sleep(1);                  // Simulo tiempo de procesamiento
             switch(header->opcode){
                 case GET:
                     paquete_get = Mensaje_recibir_get(sdf, header->dlen);
+                    print_mensaje(header, paquete_get);
                     char *data;
                     int tipo;
                     int codigo;
 
-                    printf("Mensaje GET:\n");
-                    printf("Operacion: %d. \t",paquete_get->op );
-                    printf("Id Fuente: %d.\t", paquete_get->idFuente);
-                    printf("Id Destino: %d\t",paquete_get->idDestino);
-                    printf("Data: %s\n",paquete_get->data);
                     if (paquete_get->idFuente == 0) {
                         if ((data = List_to_csv(pth_struct->fuentes)) != NULL) { ; 
                             tipo = RESP_TIPO_OK;
@@ -158,10 +150,8 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     break;
                 case POST:
                     paquete_post = Mensaje_recibir_post(sdf, header->dlen);
-                    printf("Mensaje POST. Id de la fuente = %d\n", paquete_post->idFuente);
-                    printf("Recibi estos datos: %s\t", paquete_post->data);
-                    printf("Con este timestamp: %d\n", paquete_post->timestamp);
-                    
+                    print_mensaje(header, paquete_post);
+
                     if (List_search_by_id(pth_struct->fuentes, paquete_post->idFuente) != FAIL) {
                         List_add_data_to_node_buffer(pth_struct->fuentes, paquete_post->idFuente,
                                 paquete_post->timestamp, paquete_post->data);
@@ -171,13 +161,11 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         paquete_resp = Mensaje_crear_resp(RESP_TIPO_FAIL, RESP_CODIGO_202, "");
                     }
                     Mensaje_enviar_resp(sdf, paquete_resp);
-                    printf("---------------------------------------\n");
                     break;
                 case SUS:
                     paquete_sus = Mensaje_recibir_sus(sdf, header->dlen);
-                    printf("Operacion Mensaje SUS = %d\n", paquete_sus->op);
-                    printf("Recibi estos datos: %s\n", paquete_sus->data);
-                    
+                    print_mensaje(header, paquete_sus);
+
                     char *ip = inet_ntoa(cliente.sin_addr);
                     char *portF = malloc(6);
                     char *id_str = malloc(6);
@@ -204,8 +192,8 @@ void * request_handler(struct pth_param_t *pth_struct) {
                             paquete_resp = Mensaje_crear_resp(RESP_TIPO_FAIL, RESP_CODIGO_201, "");
                         }
 
-                        Mensaje_enviar_resp(sdf, paquete_resp);            
-                        printf("---------------------------------------\n");
+                        Mensaje_enviar_resp(sdf, paquete_resp);
+
                     }
                     if (paquete_sus->op == SUS_OP_CONS){
                         int idSolicitado = atoi(paquete_sus->data);
@@ -237,21 +225,18 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         } else {
                             paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_201, "");
                             printf("Mensaje de desuscripcion con Id inexistente..\n",id );
-                            printf("---------------------------------------\n");
                         }
 
                         Mensaje_enviar_resp(sdf, paquete_resp);
-                        printf("---------------------------------------\n");
                     }
                     break;
                 case RESP:
                     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
-                    printf("Operacion del mensaje RESP = %d | tipo = %d\n", paquete_resp->codigo, paquete_resp->tipo);
+                    print_mensaje(header, paquete_resp);
                     if (paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_101) {
                         sdf_open = 0;
                         close(sdf);
                         printf("ACK recibido.\n");
-                        printf("-------------------------------------------\n");
                         pthread_exit(NULL);
                     }
                     break;

@@ -43,8 +43,10 @@ int main(int argc, char *argv[]) {
         perror( "Fallo apertura de archivo de salida de datos. \n");
         exit(-1);
     }
-
-    printf("-Bienvenido. CONSUMIDOR DataStreaming-\n");
+    
+    printf("\e[1;1H\e[2J");
+    printf("|||| Consumidor DataStreaming - v0.2 ||||\n");
+    printf("---------------------------------------\n");
     
 	while(memcmp(continuar, "n", 1) != 0) {
         printf("-Enviando Solicitud de Lista de Fuentes al Servidor...-\n");
@@ -53,10 +55,8 @@ int main(int argc, char *argv[]) {
         enviados = Mensaje_enviar_get(sdf, paquete_get);
         
         header = Mensaje_recibir_header(sdf);
-        printf("Recibí un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
-
         paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
-        printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
+        print_mensaje(header, paquete_resp);
 
         if(paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_102){
             if (strlen(paquete_resp->data) > 0) {
@@ -85,10 +85,8 @@ int main(int argc, char *argv[]) {
         printf("Enviados %d Bytes .. Esperando RESP!\n",enviados);
 
         header = Mensaje_recibir_header(sdf);
-        printf("Recibí un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
-
         paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
-        printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
+        print_mensaje(header, paquete_resp);
 
         if (paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_101) {
             printf("Suscripto a la fuente seleccionada!\n");
@@ -103,7 +101,7 @@ int main(int argc, char *argv[]) {
         }
 
 
-        printf("\nDesea obtener datos: \n0-Todos\n1-Historicos\nIngrese su opcion: \n");
+        printf("\nDesea obtener datos: \n0-Todos\n1-Historicos\nIngrese su opcion:\t");
         fgets(bufferKeyboard, 8, stdin);
         int op = atoi(bufferKeyboard);
         char *data = "";
@@ -129,13 +127,15 @@ int main(int argc, char *argv[]) {
         int existen_nuevos_paquetes = SUCCESS;
         while (existen_nuevos_paquetes == SUCCESS) {
             if (paquete_resp->codigo == RESP_CODIGO_104) {
-                printf("Recibí un RESP de tipo %d y código %d y datos: %s\n", paquete_resp->tipo, paquete_resp->codigo, paquete_resp->data);
-
+                char **datos = wrapstrsep(paquete_resp->data, ";");
+                
+                print_mensaje(header, paquete_resp);
+                printf("Recibi estos datos: %s con este timestamp: %s\n", datos[1], datos[0]);
                 header = Mensaje_recibir_header(sdf);
                 paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
             } else {
                 existen_nuevos_paquetes = FAIL;
-                printf("El servidor envio todos los datos. ");
+                printf("\nEl servidor envio todos los datos. ");
                 printf("Desea Continuar la ejecución? No - Si :\t");
                 fgets(continuar, 8, stdin);
                 continuar = str_tolower(strip(continuar));

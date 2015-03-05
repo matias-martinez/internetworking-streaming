@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <unistd.h> // sleep
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "flags.h"
@@ -41,17 +42,16 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    printf("\e[1;1H\e[2J");
+    printf("|||| Consumidor DataStreaming - v0.2 ||||\n");
+    printf("---------------------------------------\n");
 
     paquete_sus = Mensaje_crear_sus(SUS_OP_FUENTE, "text/plain;medicion temperatura\0");
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
-    printf("Enviados %d Bytes - Esperando RESP! \n", enviados);
     
     header = Mensaje_recibir_header(sdf);
-    printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
-    
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
-    printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
-
+    print_mensaje(header, paquete_resp);
     if (paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_101) {
        
         id = atoi(paquete_resp->data);
@@ -62,16 +62,15 @@ int main(int argc, char *argv[]) {
         unsigned int codigo = RESP_CODIGO_103;
 
         while (!feof(fp) && fscanf(fp, "%s\n", fp_linea) == 1 && tipo == RESP_TIPO_OK && codigo == RESP_CODIGO_103) {
-            
+            sleep(1);    // simula tiempo de proceso de sensores.
             uint32_t tm = time(NULL);
             paquete_post = Mensaje_crear_post(id, tm, fp_linea);
             printf("Campo DATA enviado: %s, timestamp: %d\n", paquete_post->data, paquete_post->timestamp);
             Mensaje_enviar_post(sdf, paquete_post);
 
             header = Mensaje_recibir_header(sdf);
-            printf("Recibi un mensaje %d con un DLEN de %d Bytes\n", header->opcode, header->dlen);
             paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
-            printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
+            print_mensaje(header, paquete_resp);
             tipo = paquete_resp->tipo;
             codigo = paquete_resp->codigo;
         }
@@ -86,6 +85,7 @@ int main(int argc, char *argv[]) {
 
     header = Mensaje_recibir_header(sdf);
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
+    print_mensaje(header, paquete_resp);
 
     if (paquete_resp->tipo == RESP_TIPO_OK) {
         printf("Enviando ACK..");
