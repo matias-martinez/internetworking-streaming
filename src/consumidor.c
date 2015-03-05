@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     }
     
     printf("\e[1;1H\e[2J");
-    printf("|||| Consumidor DataStreaming - v0.2 ||||\n");
+    printf("|||| Consumidor DataStreaming - v0.15 ||||\n");
     printf("---------------------------------------\n");
     
 	while(memcmp(continuar, "n", 1) != 0) {
@@ -125,10 +125,11 @@ int main(int argc, char *argv[]) {
         paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
 
         int existen_nuevos_paquetes = SUCCESS;
+        fprintf(fp, "timestamp, datos;\n");
         while (existen_nuevos_paquetes == SUCCESS) {
             if (paquete_resp->codigo == RESP_CODIGO_104) {
-                char **datos = wrapstrsep(paquete_resp->data, ";");
-                
+                char **datos = wrapstrsep(paquete_resp->data, ";"); 
+                fprintf(fp, "%s, %s;\n", datos[0], datos[1]);
                 print_mensaje(header, paquete_resp);
                 printf("Recibi estos datos: %s con este timestamp: %s\n", datos[1], datos[0]);
                 header = Mensaje_recibir_header(sdf);
