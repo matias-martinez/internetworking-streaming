@@ -8,6 +8,7 @@
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "flags.h"
+#include "utils.h"
 
 int main(int argc, char *argv[]) {
 

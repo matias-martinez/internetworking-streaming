@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -111,7 +110,7 @@ Header *Mensaje_recibir_header(int sdf) {
 
 Sus *Mensaje_crear_sus(int op, char data[]) {
     Sus *msj = NULL;
-    size_t dlen = strlen(data);
+    size_t dlen = !data ? 0 : strlen(data);
 
     msj = (Sus *) malloc(LONG_HEADER + LONG_SUS + dlen);
 
@@ -160,7 +159,7 @@ Sus *Mensaje_recibir_sus(int sdf, int dlen) {
 
 Resp *Mensaje_crear_resp(int tipo, int codigo, char data[]){
     Resp *msj;
-    size_t dlen = strlen(data);
+    size_t dlen = !data ? 0 : strlen(data);
     msj = (Resp *) malloc(LONG_HEADER + LONG_RESP + dlen);
 
     msj->opcode = (uint16_t) RESP;
@@ -212,7 +211,7 @@ Resp *Mensaje_recibir_resp(int sdf, int dlen){
 
 Post *Mensaje_crear_post(int idFuente, uint32_t timestamp, char data []){
     Post *msj;
-    size_t dlen = strlen(data);
+    size_t dlen = !data ? 0 : strlen(data);
     msj = (Post *) malloc(LONG_HEADER + LONG_POST + dlen);
     
     msj->opcode = (uint16_t) POST;
@@ -265,11 +264,11 @@ Post *Mensaje_recibir_post(int sdf, size_t dlen){
     return msj;
 
 }
-//TODO: Mensaje_crear_get ; Mensaje_enviar_get; Mensaje_recibir_get
+
 
 Get *Mensaje_crear_get(int idFuente, int op, int idDestino, char data[]){
     Get *msj;
-    size_t dlen = strlen(data);
+    size_t dlen = !data ? 0 : strlen(data);
     msj = (Get *) malloc(LONG_HEADER + LONG_GET + dlen);
     
     msj->opcode = (uint16_t) GET;
@@ -321,36 +320,6 @@ Get *Mensaje_recibir_get(int sdf, size_t dlen){
 
     free(payload);
     return msj;
-
 }
 
-size_t getNroTokens(const char *str, const char *delim) {
-    unsigned int nroTokens, i;
-
-    for (i = 0; i < strlen(str); i++) {
-        if (str[i] == *delim) {
-            nroTokens += 1;
-        }
-    }
-    return nroTokens;
-}
-
-char **wrapstrsep(const char* str, const char* delim) {
-    char *s = strdup(str);
-    size_t tokens_alloc = getNroTokens(str, delim);
-    size_t tokens_used = 0;
-
-    if (tokens_alloc == 0) {
-        return NULL;
-    }
-
-    char **tokens = calloc(tokens_alloc, sizeof(char *));
-    char *token, *rest = s;
-
-    while ((token = strsep(&rest, delim)) != NULL) {
-        tokens[tokens_used++] = strdup(token);
-    }
-
-    return tokens;
-}
 

@@ -9,24 +9,7 @@
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "flags.h"
-
-char *strip(char *str) {
-    size_t ln = strlen(str) - 1;
-    if (str[ln] == '\n') {
-        str[ln] = '\0';
-    }
-
-    return str;
-}
-
-char *str_tolower(char *str) {
-    unsigned short i;
-    for(i = 0; str[i]; i++) {
-        str[i] = tolower(str[i]);
-    }
-
-    return str;
-}
+#include "utils.h"
 
 int main(int argc, char *argv[]) {
 
@@ -55,10 +38,10 @@ int main(int argc, char *argv[]) {
 	char * continuar = malloc(8);
 
     FILE *fp;
-    fp = fopen(argv[1], "rw+");
-    if (fp == NULL) {
-        printf( "Fallo apertura de archivo de salida de datos. \n");
-        exit(1);
+    fp = fopen(argv[1], "a+");
+    if (!fp) {
+        perror( "Fallo apertura de archivo de salida de datos. \n");
+        exit(-1);
     }
 
     printf("-Bienvenido. CONSUMIDOR DataStreaming-\n");

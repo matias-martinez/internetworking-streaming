@@ -13,6 +13,7 @@
 #include "structures.h"
 #include "list.h"
 #include "flags.h"
+#include "utils.h"
 
 pthread_mutex_t mutex_list;
 pthread_cond_t cond_list;
@@ -27,8 +28,6 @@ struct pth_param_t {
 struct pth_param_t Crear_estructura_pthread();
 
 void * request_handler();
-
-void free_wrapp(void *);
 
 void sigint_handler(int signum) {
     printf("\n\n------ME INTERRUMPIERON------\n\n");
@@ -274,8 +273,3 @@ void * request_handler(struct pth_param_t *pth_struct) {
         }
 }
 
-void free_wrapp(void *ptr) {
-    if (ptr != NULL) {
-        free(ptr);
-    }
-}

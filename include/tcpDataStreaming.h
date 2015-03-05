@@ -211,14 +211,5 @@ int Mensaje_enviar_get(int, Get *);
 Get *Mensaje_recibir_get(int, const size_t);
 
 
-/**
- * Separa la cadena *str* en tokens usando como delimitador *delim*
- *
- * @param const char \*str
- * @param const char \*delim 
- *
- * @return un array de tokens
- */
-char **wrapstrsep(const char *str, const char *delim);
 
 #endif

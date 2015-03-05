@@ -10,17 +10,16 @@ build:
 	@mkdir -p bin
 
 fuente: build
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente
+	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente
 
 server: build
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/server.c $(SRCDIR)/tcpDataStreaming.c $(SRCDIR)/list.c -o $(BINDIR)/server -lpthread
+	cc $(INC) $(CXXFLAGS) $(SRCDIR)/server.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c $(SRCDIR)/list.c -o $(BINDIR)/server -lpthread
 
 fuente2: build
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente2.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente2
+	cc $(INC) $(CXXFLAGS) $(SRCDIR)/fuente2.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/fuente2
 
 consumidor: build
-
-	cc $(INC) $(CXXFLAGS) $(SRCDIR)/consumidor.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/consumidor
+	cc $(INC) $(CXXFLAGS) $(SRCDIR)/consumidor.c $(SRCDIR)/utils.c $(SRCDIR)/tcpDataStreaming.c -o $(BINDIR)/consumidor
 
 clean:
 	rm -rf $(BINDIR) 
