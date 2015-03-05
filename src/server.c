@@ -23,9 +23,12 @@ struct pth_param_t {
     struct sockaddr_in cliente;
 };
 
-void * request_handler();
 
 struct pth_param_t Crear_estructura_pthread();
+
+void * request_handler();
+
+void free_wrapp(void *);
 
 void sigint_handler(int signum) {
     printf("\n\n------ME INTERRUMPIERON------\n\n");
@@ -123,7 +126,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         unsigned int tmfin = 0;
                         int salida;
 
-                        if (paquete_get->op == GET_OP_NORMAL) {
+                        if (paquete_get->op == GET_OP_TM) {
                             char **datos = wrapstrsep(paquete_get->data, ";");
                             tminicio = atoi(datos[0]);
                             tmfin = atoi(datos[1]);
@@ -222,7 +225,6 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         }
 
                         Mensaje_enviar_resp(sdf,paquete_resp);
-
                     }
                     if (paquete_sus->op == SUS_OP_DEL){
                         int id;
@@ -242,7 +244,6 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         Mensaje_enviar_resp(sdf, paquete_resp);
                         printf("---------------------------------------\n");
                     }
-
                     break;
                 case RESP:
                     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
@@ -266,9 +267,15 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     }
                     break;
             }
-            free(paquete_resp);
-            free(paquete_sus);
-            free(header);
+            free_wrapp(paquete_resp);
+            free_wrapp(paquete_sus);
+            free_wrapp(paquete_get);
+            free_wrapp(header);
         }
 }
 
+void free_wrapp(void *ptr) {
+    if (ptr != NULL) {
+        free(ptr);
+    }
+}

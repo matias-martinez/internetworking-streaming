@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
+#include "flags.h"
 
 char *strip(char *str) {
     size_t ln = strlen(str) - 1;
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
 	while(memcmp(continuar, "n", 1) != 0) {
         printf("-Enviando Solicitud de Lista de Fuentes al Servidor...-\n");
 
-        paquete_get = Mensaje_crear_get(0, 0, 0, ""); 
+        paquete_get = Mensaje_crear_get(GET_OP_NORMAL, 0, 0, ""); 
         enviados = Mensaje_enviar_get(sdf, paquete_get);
         
         header = Mensaje_recibir_header(sdf);
@@ -74,7 +75,7 @@ int main(int argc, char *argv[]) {
         paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
         printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
 
-        if(paquete_resp->tipo == 0 && paquete_resp->codigo == 12){
+        if(paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_102){
             if (strlen(paquete_resp->data) > 0) {
                 int i;
                 char **datos = wrapstrsep(paquete_resp->data, ";");
@@ -106,7 +107,7 @@ int main(int argc, char *argv[]) {
         paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
         printf("Recibí un RESP de tipo %d y código %d\n", paquete_resp->tipo, paquete_resp->codigo);
 
-        if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11) {
+        if (paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_101) {
             printf("Suscripto a la fuente seleccionada!\n");
             printf("Mi ID es %s\n", paquete_resp->data);
             myId = atoi(paquete_resp->data);
@@ -119,13 +120,12 @@ int main(int argc, char *argv[]) {
         }
 
 
-
         printf("\nDesea obtener datos: \n0-Todos\n1-Historicos\nIngrese su opcion: \n");
         fgets(bufferKeyboard, 8, stdin);
-        int op = atoi(&bufferKeyboard[0]);
+        int op = atoi(bufferKeyboard);
         char *data = "";
 
-        if (op == 1) {
+        if (op == GET_OP_TM) {
             // TODO: asegurarse que ingrese por lo menos 0
             data = malloc(25);
             printf("Ingrese 2 timestamp (0 para ingorar ese timestamp)\n");
@@ -143,15 +143,15 @@ int main(int argc, char *argv[]) {
         header = Mensaje_recibir_header(sdf);
         paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
 
-        int existen_nuevos_paquetes = 0;
-        while (existen_nuevos_paquetes == 0) {
-            if ( paquete_resp->codigo == 14) {
+        int existen_nuevos_paquetes = SUCCESS;
+        while (existen_nuevos_paquetes == SUCCESS) {
+            if (paquete_resp->codigo == RESP_CODIGO_104) {
                 printf("Recibí un RESP de tipo %d y código %d y datos: %s\n", paquete_resp->tipo, paquete_resp->codigo, paquete_resp->data);
 
                 header = Mensaje_recibir_header(sdf);
                 paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
             } else {
-                existen_nuevos_paquetes = -1;
+                existen_nuevos_paquetes = FAIL;
                 printf("El servidor envio todos los datos. ");
                 printf("Desea Continuar la ejecución? No - Si :\t");
                 fgets(continuar, 8, stdin);
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
   	}
 
     printf("Cerrando conexion\n");
-    paquete_resp = Mensaje_crear_resp(0, 11, "");
+    paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_101, "");
     Mensaje_enviar_resp(sdf, paquete_resp);
     printf("Consumidor desconectado Desconectada! Saliendo...\n");
 
