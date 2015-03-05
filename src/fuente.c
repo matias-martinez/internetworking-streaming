@@ -7,6 +7,7 @@
 #include <string.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
+#include "flags.h"
 
 int main(int argc, char *argv[]) {
 
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
     }
 
 
-    paquete_sus = Mensaje_crear_sus(0, "text/plain;medicion temperatura\0");
+    paquete_sus = Mensaje_crear_sus(SUS_OP_FUENTE, "text/plain;medicion temperatura\0");
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
     printf("Enviados %d Bytes - Esperando RESP! \n", enviados);
     
@@ -50,16 +51,16 @@ int main(int argc, char *argv[]) {
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
     printf("Recibi un RESP de tipo %d y codigo %d\n", paquete_resp->tipo, paquete_resp->codigo);
 
-    if(paquete_resp->tipo == 0 && paquete_resp->codigo == 11){
+    if (paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_101) {
        
         id = atoi(paquete_resp->data);
         printf("Mi ID ES %d\n", id );
         printf("Comienzo de Envio de Datos hacia el Servidor\n");
         
-        unsigned int tipo = 0;
-        unsigned int codigo = 13;
+        unsigned int tipo = RESP_TIPO_OK;
+        unsigned int codigo = RESP_CODIGO_103;
 
-        while (!feof(fp) && fscanf(fp, "%s\n", fp_linea) == 1 && tipo == 0 && codigo == 13) {
+        while (!feof(fp) && fscanf(fp, "%s\n", fp_linea) == 1 && tipo == RESP_TIPO_OK && codigo == RESP_CODIGO_103) {
             
             uint32_t tm = time(NULL);
             paquete_post = Mensaje_crear_post(id, tm, fp_linea);
@@ -79,15 +80,15 @@ int main(int argc, char *argv[]) {
     }
     
     sprintf(id_str, "%d", id);
-    paquete_sus = Mensaje_crear_sus(2, id_str);
+    paquete_sus = Mensaje_crear_sus(SUS_OP_DEL, id_str);
     Mensaje_enviar_sus(sdf, paquete_sus);
 
     header = Mensaje_recibir_header(sdf);
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
 
-    if (paquete_resp->tipo == 0) {
+    if (paquete_resp->tipo == RESP_TIPO_OK) {
         printf("Enviando ACK..");
-        paquete_resp = Mensaje_crear_resp(0, 11, "");
+        paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_101, "");
         Mensaje_enviar_resp(sdf, paquete_resp);
         printf("Fuente Desconectada! Saliendo...\n");
     } else {

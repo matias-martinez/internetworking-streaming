@@ -12,6 +12,7 @@
 #include <time.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
+#include "flags.h"
 
 int passiveTCPSocket(char *host, int port, int qlen){
 

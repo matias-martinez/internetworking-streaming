@@ -4,24 +4,6 @@
 
 #include "structures.h"
 
-//Paquetes
-#define GET 0
-#define POST 1
-#define SUS 2
-#define RESP 3
-
-//Longitud Header y Carga no util de cada tipo de paquete
-#define LONG_HEADER 4
-#define LONG_GET 6
-#define LONG_POST 6
-#define LONG_SUS 2
-#define LONG_RESP 4
-
-//Encodings Soportados
-// TODO: arreglar esto, hacer un enum con mime
-#define BINARY 0
-#define TEXT 1
-
 
 /**
  * Crea un socket descriptor en modo pasivo.

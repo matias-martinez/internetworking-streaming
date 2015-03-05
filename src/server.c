@@ -110,21 +110,20 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Data: %s\n",paquete_get->data);
                     if (paquete_get->idFuente == 0) {
                         if ((data = List_to_csv(pth_struct->fuentes)) != NULL) { ; 
-                            tipo = 0;
-                            codigo = 12;
+                            tipo = RESP_TIPO_OK;
+                            codigo = RESP_CODIGO_102;
                         } else {
-                            tipo = 1;
-                            codigo = 26;
+                            tipo = RESP_TIPO_FAIL;
+                            codigo = RESP_CODIGO_206;
                         }
                         paquete_resp = Mensaje_crear_resp(tipo, codigo, data);
                         Mensaje_enviar_resp(sdf, paquete_resp);
-
                     } else {
                         unsigned int tminicio = 0;
                         unsigned int tmfin = 0;
                         int salida;
 
-                        if (paquete_get->op == 1) {
+                        if (paquete_get->op == GET_OP_NORMAL) {
                             char **datos = wrapstrsep(paquete_get->data, ";");
                             tminicio = atoi(datos[0]);
                             tmfin = atoi(datos[1]);
@@ -135,8 +134,8 @@ void * request_handler(struct pth_param_t *pth_struct) {
                                     paquete_get->idDestino, data, tminicio, tmfin);
                             switch (salida) {
                                 case SUCCESS:
-                                    tipo = 0;
-                                    codigo = 14;
+                                    tipo = RESP_TIPO_OK;
+                                    codigo = RESP_CODIGO_104;
                                     printf("Enviando Datos a consumidor de id: %d\n", paquete_get->idDestino);
                                     break;
                                 case OVER:              // TODO: tratar errores
@@ -144,8 +143,8 @@ void * request_handler(struct pth_param_t *pth_struct) {
                                 case NODENULL:
                                 case DESTNULL:
                                 case TMINV:
-                                    tipo = 1;
-                                    codigo = 21;
+                                    tipo = RESP_TIPO_FAIL;
+                                    codigo = RESP_CODIGO_201;
                                     break;
                                 }
                         
@@ -161,13 +160,13 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     printf("Recibi estos datos: %s\t", paquete_post->data);
                     printf("Con este timestamp: %d\n", paquete_post->timestamp);
                     
-                    if (List_search_by_id(pth_struct->fuentes, paquete_post->idFuente) != -1) {
+                    if (List_search_by_id(pth_struct->fuentes, paquete_post->idFuente) != FAIL) {
                         List_add_data_to_node_buffer(pth_struct->fuentes, paquete_post->idFuente,
                                 paquete_post->timestamp, paquete_post->data);
                         
-                        paquete_resp = Mensaje_crear_resp(0, 13, "");
+                        paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_103, "");
                     } else {
-                        paquete_resp = Mensaje_crear_resp(1, 22, "");
+                        paquete_resp = Mensaje_crear_resp(RESP_TIPO_FAIL, RESP_CODIGO_202, "");
                     }
                     Mensaje_enviar_resp(sdf, paquete_resp);
                     printf("---------------------------------------\n");
@@ -182,10 +181,10 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     char *id_str = malloc(6);
                     sprintf(portF, "%d", cliente.sin_port);
                    
-                    if (paquete_sus->op == 0){
+                    if (paquete_sus->op == SUS_OP_FUENTE){
                         char **datos = wrapstrsep(paquete_sus->data, ";");
                         
-                        if (List_search_by_ip_port(pth_struct->fuentes, ip, portF) == -1) {
+                        if (List_search_by_ip_port(pth_struct->fuentes, ip, portF) == FAIL) {
                             ListNode fuente_node = ListNode_create(datos[0], datos[1], ip, portF);
                             if (fuente_node == NULL) {
                                 printf("fallo la alocacion");
@@ -197,45 +196,45 @@ void * request_handler(struct pth_param_t *pth_struct) {
 
                             printf("Se asigna a la fuente de ip: %s, el id %d\n", ip, id);  
                             sprintf(id_str, "%d", id);
-                            paquete_resp = Mensaje_crear_resp(0, 11, id_str);
+                            paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_101, id_str);
                         }
                         else {
-                            paquete_resp = Mensaje_crear_resp(1, 21, "");         //Tipo=1;Codigo=21;Data=NULL
+                            paquete_resp = Mensaje_crear_resp(RESP_TIPO_FAIL, RESP_CODIGO_201, "");
                         }
 
                         Mensaje_enviar_resp(sdf, paquete_resp);            
                         printf("---------------------------------------\n");
                     }
-                    if (paquete_sus->op == 1){
+                    if (paquete_sus->op == SUS_OP_CONS){
                         int idSolicitado = atoi(paquete_sus->data);
                         pthread_mutex_lock(&mutex_list);
                         int idDestino = List_registrar_consumidor(pth_struct->fuentes, idSolicitado,
                                 inet_ntoa(cliente.sin_addr), cliente.sin_port);
                         pthread_cond_signal(&cond_list);
                         pthread_mutex_unlock(&mutex_list);
-                        if (idDestino != -1) {
+                        if (idDestino != FAIL) {
                             char * idDestino_str = malloc(6);
                             sprintf(idDestino_str, "%d", idDestino);
-                            paquete_resp = Mensaje_crear_resp(0, 11, idDestino_str);
+                            paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_101, idDestino_str);
                             free(idDestino_str);
                         } else {
-                            paquete_resp = Mensaje_crear_resp(1, 22, "Id fuente inexistente");
+                            paquete_resp = Mensaje_crear_resp(RESP_TIPO_FAIL, RESP_CODIGO_202, "Id fuente inexistente");
                         }
 
                         Mensaje_enviar_resp(sdf,paquete_resp);
 
                     }
-                    if (paquete_sus->op == 2){
+                    if (paquete_sus->op == SUS_OP_DEL){
                         int id;
-                        if ((id = List_search_by_ip_port(pth_struct->fuentes, ip, portF)) != -1) {
+                        if ((id = List_search_by_ip_port(pth_struct->fuentes, ip, portF)) != FAIL) {
                             pthread_mutex_lock(&mutex_list);
                             List_delete_by_id(pth_struct->fuentes, id);
                             pthread_cond_signal(&cond_list);
                             pthread_mutex_unlock(&mutex_list);
-                            paquete_resp = Mensaje_crear_resp(0, 11, "");
+                            paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_101, "");
                             printf("La Fuente con ID %d se DESUSCRIBIO!\n", id);
                         } else {
-                            paquete_resp = Mensaje_crear_resp(1, 21, "");
+                            paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_201, "");
                             printf("Mensaje de desuscripcion con Id inexistente..\n",id );
                             printf("---------------------------------------\n");
                         }
@@ -248,7 +247,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                 case RESP:
                     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);
                     printf("Operacion del mensaje RESP = %d | tipo = %d\n", paquete_resp->codigo, paquete_resp->tipo);
-                    if (paquete_resp->tipo == 0 && paquete_resp->codigo == 11) {
+                    if (paquete_resp->tipo == RESP_TIPO_OK && paquete_resp->codigo == RESP_CODIGO_101) {
                         sdf_open = 0;
                         close(sdf);
                         printf("ACK recibido.\n");
