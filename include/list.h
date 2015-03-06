@@ -64,4 +64,19 @@ void List_delete_by_id(List, int);
 
 int List_add_data_to_node_buffer(List, int, long int, char *);
 
+/**
+ *
+ * Registra un nuevo consumidor a una fuente
+ *
+ * @param lista donde estan almacenadas las fuentes
+ * @param id de la fuente
+ * @param ip del consumidor
+ * @param puerto del consumidor
+ * @param timestamp de incio de envio de datos (opcional)
+ * @param timestamp de fin de envio de datos (opcional)
+ *
+ * @return id del consumidor o FAIL en caso de que ocurra un error
+ */
+int List_registrar_consumidor(List, int, char*, unsigned short); 
+
 #endif

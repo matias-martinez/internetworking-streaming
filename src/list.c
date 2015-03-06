@@ -27,8 +27,9 @@ struct ListNode {
     char *description;
     char *ip;
     char *port;
-    int cant_data;
+    unsigned int cant_data;
     struct Consumidor **consumidores;
+    unsigned int cant_consumidores;
     struct Buffer **buffer;
 };
 
@@ -60,6 +61,7 @@ ListNode ListNode_create(char *type, char *description, char *ip, char *port) {
     ln->buffer = (struct Buffer **) malloc(sizeof(struct Buffer));
     ln->consumidores = (struct Consumidor **) malloc(sizeof(struct Consumidor));
     ln->cant_data = 0;
+    ln->cant_consumidores = 0;
 
     return ln;
 }
@@ -185,12 +187,12 @@ int List_add_data_to_node_buffer(List list, int id, long int tm, char *data) {
     return FAIL;
 }
 
-int List_registrar_consumidor(List list, int id, char *ip, unsigned short port, long int tminicio, long int tmfin) {
+int List_registrar_consumidor(List list, int id, char *ip, unsigned short port) {
     if (List_search_by_id(list, id) != FAIL) {
     
         struct ListNode *node = list->elements[id];
         struct Consumidor *consumidor;
-        size_t size = sizeof(node->consumidores) / sizeof(struct Consumidor);
+        unsigned int size = node->cant_consumidores;
 
         node->consumidores = (struct Consumidor **) realloc(node->consumidores, sizeof(struct Consumidor) * (size + 1));
         node->consumidores[size] = (struct Consumidor *) malloc(sizeof(struct Consumidor));
@@ -204,6 +206,7 @@ int List_registrar_consumidor(List list, int id, char *ip, unsigned short port, 
         
         strcpy(node->consumidores[size]->ip, ip);
     
+        node->cant_consumidores++;
         return size;
     }
     return FAIL;

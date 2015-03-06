@@ -251,10 +251,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                     }
                     break;
             }
-            free_wrapp(paquete_resp);
-            free_wrapp(paquete_sus);
-            free_wrapp(paquete_get);
-            free_wrapp(header);
+            free_wrapp(4, paquete_resp, paquete_sus, paquete_get, header);
         }
 }
 
