@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdarg.h>
 
 char *strip(char *str) {
     size_t ln = strlen(str) - 1;
@@ -20,10 +20,18 @@ char *str_tolower(char *str) {
     return str;
 }
 
-void free_wrapp(void *ptr) {
-    if (ptr != NULL) {
-        free(ptr);
+void free_wrapp(int num, ...) {
+    va_list a_list;
+    int i;
+    va_start(a_list, num);
+    
+    for (i = 0; i < num; i++) {
+        void *ptr = va_arg(a_list, void *);
+        if (ptr != NULL) {
+            free(ptr);
+        }
     }
+    va_end(a_list);
 }
 
 size_t getNroTokens(const char *str, const char *delim) {

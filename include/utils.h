@@ -19,12 +19,14 @@ char *strip(char *);
 char *str_tolower(char *);
 
 /**
- * Verifica que el puntero no sea NULL antes de liberarlo.
+ * Libera los punteros pasados en la ellipsis
  *
- * @param cadena a modificar.
+ * @param cantidad de punteros.
+ * @param punteros
+ *
  * @return la cadena modificada.
  */
-void free_wrapp(void *);
+void free_wrapp(int, ...);
 
 /**
  * Calcula la cantidad de Tokens que hay en una cadena. 
