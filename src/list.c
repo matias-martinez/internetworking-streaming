@@ -252,6 +252,7 @@ static List_search(List list, int idFuente, unsigned int tm) {
 
 int List_get_node_data(List list, int idFuente, int idDestino, char *data, unsigned int tminicio, unsigned int tmfin) {
     if (list == NULL) { return LISTNULL; }
+    if (idFuente > list->count) { return NODENULL; }
     if (list->elements[idFuente] == NULL ) { return NODENULL; }
     
     struct Consumidor *con = List_get_consumidor(list, idFuente, idDestino);

@@ -69,7 +69,7 @@ int receiveall (int sd, char * buffer, int total) {
         bytes = recv (sd, buffer + leido, total - leido, MSG_WAITALL);
         if (bytes < 0){
             perror("Error en recepcion del paquete/ receiveall()");
-            break;
+            return -1;
         }
         leido = leido + bytes;
     }

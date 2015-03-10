@@ -41,6 +41,7 @@ int main(int argc, char *argv[]){
     }
  
     signal(SIGINT, sigint_handler);
+    signal(SIGPIPE, SIG_IGN);
     char *end;
     char *host = argv[1];
     int port = strtol(argv[2], &end, 10);
@@ -56,8 +57,7 @@ int main(int argc, char *argv[]){
     printf("---------------------------------------\n");
     
     pthread_mutex_init(&mutex_list, NULL);
-    pthread_cond_init(&cond_list, NULL);
-    
+    pthread_cond_init(&cond_list, NULL); 
 
     lon = sizeof(struct sockaddr_in);
     printf("- Aguardando connect -\n");
