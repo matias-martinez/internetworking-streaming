@@ -10,6 +10,6 @@
  * @param mensaje el cual puede ser del tipo GET, SUS, RESP, POST.
  *
  */
-void print_mensaje(Header, void *);
+void print_mensaje(Header *, void *);
 
 #endif
