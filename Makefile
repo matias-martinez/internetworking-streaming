@@ -1,9 +1,9 @@
-EXECUTABLES = fuente server fuente2 consumidor
+EXECUTABLES = fuente server consumidor
 DEP = src/utils.c src/tcpDataStreaming.c src/list.c src/out.c
 SRCDIR = src
 BINDIR = bin
 INC = -I include
-CXXFLAGS = -g
+CXXFLAGS = -Wall -g
 LIB = -lpthread
 
 all: build $(EXECUTABLES)
