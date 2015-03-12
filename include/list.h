@@ -79,4 +79,49 @@ int List_add_data_to_node_buffer(List, int, long int, char *);
  */
 int List_registrar_consumidor(List, int, char*, unsigned short); 
 
+/**
+ * Busca una fuente dado la ip y el puerto del mismo. 
+ *
+ * @param lista donde estan almacenadas las fuentes
+ * @param ip de la fuente
+ * @param port de la fuente
+ *
+ * @return id del consumidor o FAIL en caso de que ocurra un error
+ */
+int List_search_by_ip_port(List, char*, char*);
+
+/**
+ * Retorna todos los consumidores de determinada fuente. 
+ *
+ * @param lista donde estan almacenadas las fuentes
+ * @param ip de la fuente
+ *
+ * @return array de consumidores
+ */
+struct Consumidor **List_get_consumidores(List, int);
+
+/**
+ * Busca un consumidor por id. 
+ *
+ * @param lista donde estan almacenadas las fuentes
+ * @param id de la fuente
+ * @param id del consumidor
+ *
+ * @return puntero a un Consumidor
+ */
+struct Consumidor *List_get_consumidor(List, int, int);
+
+/**
+ * Guarda en el buffer un dato con su correspondiente timestamp. 
+ *
+ * @param lista donde estan almacenadas las fuentes
+ * @param id de la fuente
+ * @param id del consumidor
+ * @param buffer
+ * @param timeline de inicio
+ * @param timeline de fin
+ *
+ * @return status del pedido
+ */
+int List_get_node_data(List, int, int, char*, unsigned int, unsigned int);
 #endif
