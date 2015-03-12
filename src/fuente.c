@@ -7,10 +7,12 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h> // sleep
+#include <time.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "flags.h"
 #include "utils.h"
+#include "out.h"
 
 int signal_exit = 0;
 
@@ -61,9 +63,7 @@ int main(int argc, char *argv[]) {
     Sus *paquete_sus = NULL;
     Resp *paquete_resp = NULL;
     Post *paquete_post = NULL;
-    int enviados,recibidos,id;
-    time_t rawtime;
-    struct tm *timestamp;
+    int enviados, id;
     char *fp_linea = malloc(128);   //alberga lineas leidas del archivo
     char *id_str = malloc(4);
 
@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
 
     paquete_sus = Mensaje_crear_sus(SUS_OP_FUENTE, "text/plain;medicion temperatura\0");
     enviados = Mensaje_enviar_sus(sdf, paquete_sus);
+    printf("Enviados %d Bytes", enviados);
     
     header = Mensaje_recibir_header(sdf);
     paquete_resp = Mensaje_recibir_resp(sdf, header->dlen);

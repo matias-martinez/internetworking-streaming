@@ -45,7 +45,7 @@ void print_mensaje(Header *header, void * mensaje) {
             printf("%s\n", RESET);
             break;
         case SUS:
-            printf("%sSUS%S con un dlen %d", BYELLOW, RESET, header->dlen);
+            printf("%sSUS%s con un dlen %d", BYELLOW, RESET, header->dlen);
             printf("%s\n--------------------------------------------\n", BYELLOW);
             print_sus((Sus *) mensaje);
             printf("%s\n", RESET);

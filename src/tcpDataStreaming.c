@@ -1,16 +1,18 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/wait.h>
 #include <sys/signal.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
-#include "tcpDataStreaming.h"
 #include "structures.h"
+#include "tcpDataStreaming.h"
 #include "flags.h"
 
 int passiveTCPSocket(char *host, int port, int qlen){
@@ -40,7 +42,6 @@ int passiveTCPSocket(char *host, int port, int qlen){
 int connectTCP(char *host, int port){
 
     int sdc;
-    int r;
     struct sockaddr_in servidor;
     struct hostent *hp, *gethostbyname();
 
@@ -96,10 +97,9 @@ int sendall(int sd, char *buf, int len){
 Header *Mensaje_recibir_header(int sdf) {
     char *paquete;
     Header *msj = NULL;
-    int recibidos;
 
     paquete = malloc(LONG_HEADER);
-    recibidos = receiveall(sdf, paquete, LONG_HEADER);
+    receiveall(sdf, paquete, LONG_HEADER);
     msj = (Header *) paquete;
 
     msj->opcode = ntohs(msj->opcode);
@@ -141,13 +141,12 @@ Sus *Mensaje_recibir_sus(int sdf, int dlen) {
     Payload *payload;
     char *paquete;
     Sus *msj;
-    int recibidos;
     
     paquete = malloc(LONG_SUS + dlen);
     msj = malloc(LONG_HEADER + LONG_SUS + dlen);
     payload = (Payload *) malloc(LONG_SUS + dlen);
 
-    recibidos = receiveall(sdf, paquete, LONG_SUS + dlen);
+    receiveall(sdf, paquete, LONG_SUS + dlen);
     payload = (Payload *) paquete;
 
     msj->op = ntohs(payload->op);
@@ -192,13 +191,12 @@ Resp *Mensaje_recibir_resp(int sdf, int dlen){
     Payload *payload;
     char *paquete;
     Resp *msj;
-    int recibidos;
 
     paquete = malloc(LONG_RESP + dlen);
     msj = malloc(LONG_HEADER + LONG_RESP + dlen);
     payload = (Payload *) malloc(LONG_RESP + dlen);
 
-    recibidos = receiveall(sdf, paquete, LONG_RESP + dlen);
+    receiveall(sdf, paquete, LONG_RESP + dlen);
     payload = (Payload *) paquete;
 
     msj->tipo = ntohs(payload->tipo);
@@ -246,13 +244,12 @@ Post *Mensaje_recibir_post(int sdf, size_t dlen){
     Payload *payload;
     char *paquete;
     Post *msj;
-    int recibidos;
 
     paquete = malloc(LONG_POST + dlen);
     msj = (Post *) malloc(LONG_HEADER + LONG_POST + dlen);
     payload = (Payload *) malloc(LONG_POST + dlen);
 
-    recibidos = receiveall(sdf, paquete, LONG_POST + dlen);
+    receiveall(sdf, paquete, LONG_POST + dlen);
     payload = (Payload *) paquete;
 
     msj->idFuente = ntohs(payload->idFuente);
@@ -304,13 +301,12 @@ Get *Mensaje_recibir_get(int sdf, size_t dlen){
     Payload *payload;
     char *paquete;
     Get *msj;
-    int recibidos;
 
     paquete = malloc(LONG_GET + dlen);
     msj = (Get *) malloc(LONG_HEADER + LONG_GET + dlen);
     payload = (Payload *) malloc(LONG_GET + dlen);
 
-    recibidos = receiveall(sdf, paquete, LONG_POST + dlen);
+    receiveall(sdf, paquete, LONG_POST + dlen);
     payload = (Payload *) paquete;
 
     msj->idFuente = ntohs(payload->idFuente);

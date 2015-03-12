@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 char *strip(char *str) {
     size_t ln = strlen(str) - 1;

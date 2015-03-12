@@ -6,10 +6,12 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "flags.h"
 #include "utils.h"
+#include "out.h"
 
 int main(int argc, char *argv[]) {
 
@@ -30,10 +32,7 @@ int main(int argc, char *argv[]) {
     Sus *paquete_sus = NULL;
     Resp *paquete_resp = NULL;
     Get *paquete_get = NULL;
-    Post *paquete_post = NULL;
-    int enviados, recibidos, idFuente;
-    time_t rawtime;
-    struct tm *timestamp;
+    int enviados, idFuente;
     char *bufferKeyboard = malloc(12);  
 	char * continuar = malloc(8);
 

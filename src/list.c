@@ -137,7 +137,7 @@ char * List_to_csv(List list) {
     for (i = 1; i <= list->count; i++) {
         if (list->elements[i] != NULL) { 
             char tm_inicio[10];
-            sprintf(tm_inicio, "%li", list->elements[i]->buffer[0]->tm);
+            sprintf(tm_inicio, "%u", list->elements[i]->buffer[0]->tm);
             char *id = list->elements[i]->id;
             char *type = (char *) list->elements[i]->type;
             char *description = list->elements[i]->description;
@@ -229,7 +229,7 @@ struct Consumidor *List_get_consumidor(List list, int idFuente, int idDestino) {
     return NULL;  
 }
 
-static List_search(List list, int idFuente, unsigned int tm) {
+static int List_search(List list, int idFuente, unsigned int tm) {
     struct ListNode *node = list->elements[idFuente];
     struct Buffer **buffer = node->buffer;
     int inicio = 0;
@@ -251,13 +251,13 @@ static List_search(List list, int idFuente, unsigned int tm) {
 }
 
 int List_get_node_data(List list, int idFuente, int idDestino, char *data, unsigned int tminicio, unsigned int tmfin) {
-    if (list == NULL) { return LISTNULL; }
-    if (idFuente > list->count) { return NODENULL; }
-    if (list->elements[idFuente] == NULL ) { return NODENULL; }
+    if (list == NULL) { data = ""; return LISTNULL; }
+    if (idFuente > list->count) { data = ""; return NODENULL; }
+    if (list->elements[idFuente] == NULL ) { data = ""; return NODENULL; }
     
     struct Consumidor *con = List_get_consumidor(list, idFuente, idDestino);
 
-    if (con == NULL) { return DESTNULL; }
+    if (con == NULL) { data = ""; return DESTNULL; }
     
     struct ListNode *node = list->elements[idFuente];
     
@@ -272,11 +272,12 @@ int List_get_node_data(List list, int idFuente, int idDestino, char *data, unsig
     
     if (node->cant_data > con->data_enviada && con->data_enviada <= con->data_fin) {
         struct Buffer *buffer = node->buffer[con->data_enviada];
-        sprintf(data, "%ld", buffer->tm);
+        sprintf(data, "%u", buffer->tm);
         strncat(data, ";", 1);
         strncat(data, buffer->data, strlen(buffer->data));
         con->data_enviada++;
     } else {
+        data = "";
         return OVER;
     }
 

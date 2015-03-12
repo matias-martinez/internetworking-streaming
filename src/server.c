@@ -8,11 +8,13 @@
 #include <pthread.h>
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>
 #include "tcpDataStreaming.h"
 #include "structures.h"
 #include "list.h"
 #include "flags.h"
 #include "utils.h"
+#include "out.h"
 
 pthread_mutex_t mutex_list;
 pthread_cond_t cond_list;
@@ -49,7 +51,8 @@ int main(int argc, char *argv[]){
 
     List fuentes = List_create(); 
     int sd = passiveTCPSocket(host, port, qlen);
-    int sdf, lon;
+    int sdf;
+    socklen_t lon;
     struct sockaddr_in cliente;
     
     printf("\e[1;1H\e[2J");   
@@ -61,7 +64,7 @@ int main(int argc, char *argv[]){
 
     lon = sizeof(struct sockaddr_in);
     printf("- Aguardando connect -\n");
-    while (sdf = accept(sd, (struct sockaddr *) &cliente, &lon)) {
+    while ((sdf = accept(sd, (struct sockaddr *) &cliente, &lon))) {
         printf("Recibí connect desde: %s port %d\n", inet_ntoa(cliente.sin_addr), cliente.sin_port);
          
         pthread_t tid;
@@ -81,7 +84,6 @@ int main(int argc, char *argv[]){
 
 void * request_handler(struct pth_param_t *pth_struct) {
         int sdf = *(pth_struct->sdf);
-        pth_struct->fuentes;
         struct sockaddr_in cliente = pth_struct->cliente;
         short strike = 0;
         int sdf_open = 1;
@@ -112,6 +114,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         }
                         paquete_resp = Mensaje_crear_resp(tipo, codigo, data);
                         Mensaje_enviar_resp(sdf, paquete_resp);
+                        free_wrapp(1, data);
                     } else {
                         unsigned int tminicio = 0;
                         unsigned int tmfin = 0;
@@ -124,6 +127,8 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         }
                         
                         do {
+                            // TODO: arreglar esto, hacer 1 consulta y que el
+                            // server itere sobre esa consulta.
                             salida = List_get_node_data(pth_struct->fuentes, paquete_get->idFuente, 
                                     paquete_get->idDestino, data, tminicio, tmfin);
                             switch (salida) {
@@ -224,7 +229,7 @@ void * request_handler(struct pth_param_t *pth_struct) {
                             printf("La Fuente con ID %d se DESUSCRIBIO!\n", id);
                         } else {
                             paquete_resp = Mensaje_crear_resp(RESP_TIPO_OK, RESP_CODIGO_201, "");
-                            printf("Mensaje de desuscripcion con Id inexistente..\n",id );
+                            printf("Mensaje de desuscripcion con Id inexistente..\n");
                         }
 
                         Mensaje_enviar_resp(sdf, paquete_resp);
@@ -253,5 +258,6 @@ void * request_handler(struct pth_param_t *pth_struct) {
             }
             free_wrapp(4, paquete_resp, paquete_sus, paquete_get, header);
         }
+    return NULL;
 }
 
