@@ -114,7 +114,6 @@ void * request_handler(struct pth_param_t *pth_struct) {
                         }
                         paquete_resp = Mensaje_crear_resp(tipo, codigo, data);
                         Mensaje_enviar_resp(sdf, paquete_resp);
-                        free_wrapp(1, data);
                     } else {
                         unsigned int tminicio = 0;
                         unsigned int tmfin = 0;
